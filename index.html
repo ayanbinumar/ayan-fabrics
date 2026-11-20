@@ -4,15 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AYAN BIN UMAR FABRICS | Where Quality Meets Elegance</title>
+
+    <title>AYAN BIN UMAR | Where Quality Meets Elegance</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="header">
-    <a href="#home" class="logo">AYAN BIN UMAR FABRICS</a>
+    <a href="#home" class="logo">AYAN BIN UMAR</a>
 
-    <button class="menu-toggle" id="menuToggle">☰</button>
+    <button class="menu-toggle" id="menuToggle"
+        aria-label="Open menu" aria-expanded="false">☰</button>
 
     <nav class="navbar" id="navbar">
         <a href="#home">Home</a>
@@ -31,7 +38,7 @@
 <!-- HOME -->
 <section class="hero" id="home">
     <div class="hero-content">
-        <h1>AYAN BIN UMAR FABRICS</h1>
+        <h1>AYAN BIN UMAR</h1>
         <h2>Where Quality Meets Elegance</h2>
         <p>Discover Premium Fabrics. Experience Timeless Style.</p>
         <a href="#collection" class="btn">EXPLORE COLLECTION</a>
@@ -43,54 +50,12 @@
     <h2>OUR COLLECTION</h2>
     <p>Luxury • Quality • Elegance</p>
 
-    <div class="products">
-
-        <div class="product">
-            <div class="product-image">
-                <img src="https://images.unsplash.com/photo-1598033129183-c4f50c7d?auto=format&fit=crop&w=600&q=80" alt="Men's Fabric">
-            </div>
-            <div class="product-info">
-                <h3>Men's Collection</h3>
-                <p>Premium Quality Fabrics</p>
-                <div class="product-bottom">
-                    <strong>Rs. 2,500</strong>
-                    <button class="add-cart" data-id="1">ADD TO BAG +</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product">
-            <div class="product-image">
-                <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80" alt="Women's Fabric">
-            </div>
-            <div class="product-info">
-                <h3>Women's Collection</h3>
-                <p>Elegant & Beautiful Designs</p>
-                <div class="product-bottom">
-                    <strong>Rs. 3,200</strong>
-                    <button class="add-cart" data-id="2">ADD TO BAG +</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product">
-            <div class="product-image">
-                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80" alt="Premium Fabric">
-            </div>
-            <div class="product-info">
-                <h3>Premium Fabrics</h3>
-                <p>Style That Defines You</p>
-                <div class="product-bottom">
-                    <strong>Rs. 4,500</strong>
-                    <button class="add-cart" data-id="3">ADD TO BAG +</button>
-                </div>
-            </div>
-        </div>
-
+    <div class="products" id="products">
+        <p>Loading products...</p>
     </div>
 </section>
 
-<!-- SHOPPING CART -->
+<!-- SHOPPING BAG -->
 <section class="cart-section" id="cart">
     <div class="cart-heading">
         <span class="eyebrow">YOUR SELECTION</span>
@@ -120,9 +85,9 @@
 
 <!-- ABOUT -->
 <section class="about section" id="about">
-    <h2>ABOUT AYAN BIN UMAR FABRICS</h2>
+    <h2>ABOUT AYAN BIN UMAR</h2>
     <p>
-        Welcome to AYAN BIN UMAR FABRICS, where quality meets elegance.
+        Welcome to AYAN BIN UMAR, where quality meets elegance.
         We believe every fabric represents beauty, comfort and
         confidence. Our mission is to provide premium quality
         fabrics with elegant designs and exceptional value.
@@ -154,7 +119,7 @@
 <!-- CONTACT -->
 <section class="contact section" id="contact">
     <h2>CONTACT US</h2>
-    <p>AYAN BIN UMAR FABRICS</p>
+    <p>AYAN BIN UMAR</p>
     <p>Faisalabad, Pakistan</p>
     <p>+92 321 9662393</p>
 
@@ -165,11 +130,12 @@
 
 <!-- FOOTER -->
 <footer>
-    <h2>AYAN BIN UMAR FABRICS</h2>
+    <h2>AYAN BIN UMAR</h2>
     <p>Where Quality Meets Elegance</p>
-    <p>© 2026 AYAN BIN UMAR FABRICS. All Rights Reserved.</p>
+    <p>© 2026 AYAN BIN UMAR. All Rights Reserved.</p>
 </footer>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
+
 </body>
 </html>

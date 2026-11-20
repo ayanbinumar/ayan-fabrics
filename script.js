@@ -1,27 +1,31 @@
 
-/* AYAN BIN UMAR FABRICS - SHOPPING STORE */
+/* AYAN BIN UMAR - FIREBASE STORE */
 
-// PRODUCT DATABASE
-const products = {
-    1: {
-        name: "Classic Men's Fabric",
-        price: 2500
-    },
-    2: {
-        name: "Elegant Women's Fabric",
-        price: 3200
-    },
-    3: {
-        name: "Signature Premium Fabric",
-        price: 4500
-    },
-    4: {
-        name: "Exclusive Fabric",
-        price: 3800
-    }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+// FIREBASE CONFIGURATION
+const firebaseConfig = {
+    apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
+    authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
+    projectId: "ayan-bin-umar-fabrics",
+    storageBucket: "ayan-bin-umar-fabrics.firebasestorage.app",
+    messagingSenderId: "472203328513",
+    appId: "1:472203328513:web:3de6e17dc8379431b49400",
+    measurementId: "G-5JQ417GF6E"
 };
 
-// CART STORAGE
+// CONNECT FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// PRODUCTS AND CART
+let products = {};
 let cart = {};
 
 try {
@@ -30,7 +34,8 @@ try {
     cart = {};
 }
 
-// ELEMENTS
+// WEBSITE ELEMENTS
+const productsContainer = document.getElementById("products");
 const cartCount = document.getElementById("cartCount");
 const cartItems = document.getElementById("cartItems");
 const cartTotal = document.getElementById("cartTotal");
@@ -41,56 +46,147 @@ const navbar = document.getElementById("navbar");
 
 // FORMAT PRICE
 function formatPrice(price) {
-    return "Rs. " + price.toLocaleString("en-PK");
+    return "Rs. " + Number(price).toLocaleString("en-PK");
 }
 
 // SAVE CART
 function saveCart() {
+    localStorage.setItem("ayanCart", JSON.stringify(cart));
+}
+
+// LOAD PRODUCTS FROM FIREBASE
+async function loadProducts() {
+    productsContainer.textContent = "Loading products...";
+
     try {
-        localStorage.setItem("ayanCart", JSON.stringify(cart));
+        const snapshot = await getDocs(collection(db, "products"));
+
+        products = {};
+
+        snapshot.forEach((document) => {
+            const data = document.data();
+
+            products[document.id] = {
+                name: data.name || "Fabric",
+                price: Number(data.price) || 0,
+                imageUrl: data.imageUrl || "",
+                status: data.status || "available"
+            };
+        });
+
+        displayProducts();
+        updateCart();
+
     } catch (error) {
-        console.warn("Cart could not be saved.");
+        console.error("Firebase error:", error);
+
+        productsContainer.textContent =
+            "Products could not be loaded. Please try again later.";
     }
 }
 
-// ADD PRODUCT
-document.querySelectorAll(".add-cart").forEach(button => {
+// DISPLAY PRODUCTS
+function displayProducts() {
+    productsContainer.innerHTML = "";
 
-    button.addEventListener("click", function() {
+    const productIds = Object.keys(products);
 
-        const id = this.dataset.id;
+    if (productIds.length === 0) {
+        productsContainer.textContent = "No products available yet.";
+        return;
+    }
 
-        if (!products[id]) return;
+    productIds.forEach((id) => {
+        const product = products[id];
 
-        cart[id] = (cart[id] || 0) + 1;
+        const card = document.createElement("div");
+        card.className = "product";
 
-        saveCart();
-        updateCart();
+        const imageBox = document.createElement("div");
+        imageBox.className = "product-image";
 
-        this.textContent = "ADDED ✓";
+        if (product.imageUrl) {
+            const image = document.createElement("img");
+            image.src = product.imageUrl;
+            image.alt = product.name;
+            imageBox.appendChild(image);
+        }
 
-        setTimeout(() => {
-            this.textContent = "ADD TO BAG +";
-        }, 1000);
+        const info = document.createElement("div");
+        info.className = "product-info";
 
+        const name = document.createElement("h3");
+        name.textContent = product.name;
+
+        const description = document.createElement("p");
+        description.textContent = "Premium Quality Fabrics";
+
+        const bottom = document.createElement("div");
+        bottom.className = "product-bottom";
+
+        const price = document.createElement("strong");
+        price.textContent = formatPrice(product.price);
+
+        const button = document.createElement("button");
+        button.className = "add-cart";
+        button.dataset.id = id;
+
+        if (product.status === "available") {
+            button.textContent = "ADD TO BAG +";
+        } else {
+            button.textContent = "SOLD OUT";
+            button.disabled = true;
+        }
+
+        bottom.append(price, button);
+        info.append(name, description, bottom);
+        card.append(imageBox, info);
+
+        productsContainer.appendChild(card);
     });
+}
 
+// ADD TO CART
+productsContainer.addEventListener("click", function(event) {
+    const button = event.target.closest(".add-cart");
+
+    if (!button || button.disabled) return;
+
+    const id = button.dataset.id;
+    const product = products[id];
+
+    if (!product || product.status !== "available") return;
+
+    cart[id] = (Number(cart[id]) || 0) + 1;
+
+    saveCart();
+    updateCart();
+
+    button.textContent = "ADDED ✓";
+
+    setTimeout(() => {
+        if (button.isConnected) {
+            button.textContent = "ADD TO BAG +";
+        }
+    }, 1000);
 });
 
 // UPDATE CART
 function updateCart() {
-
     let totalItems = 0;
     let totalPrice = 0;
 
     cartItems.innerHTML = "";
 
     for (const id in cart) {
-
         const product = products[id];
         const quantity = Number(cart[id]);
 
-        if (!product || !Number.isInteger(quantity) || quantity <= 0) {
+        if (
+            !product ||
+            !Number.isInteger(quantity) ||
+            quantity <= 0
+        ) {
             delete cart[id];
             continue;
         }
@@ -101,38 +197,58 @@ function updateCart() {
         totalPrice += subtotal;
 
         const item = document.createElement("div");
-
         item.className = "cart-item";
 
-        item.innerHTML = `
-            <div>
-                <h3>${product.name}</h3>
-                <p>${formatPrice(product.price)} each</p>
-                <strong>${formatPrice(subtotal)}</strong>
-            </div>
+        const details = document.createElement("div");
 
-            <div class="quantity-control">
-                <button data-action="minus" data-id="${id}">−</button>
-                <span>${quantity}</span>
-                <button data-action="plus" data-id="${id}">+</button>
-            </div>
+        const name = document.createElement("h3");
+        name.textContent = product.name;
 
-            <button class="remove-item" data-action="remove" data-id="${id}">
-                REMOVE
-            </button>
-        `;
+        const eachPrice = document.createElement("p");
+        eachPrice.textContent = formatPrice(product.price) + " each";
 
+        const subtotalText = document.createElement("strong");
+        subtotalText.textContent = formatPrice(subtotal);
+
+        details.append(name, eachPrice, subtotalText);
+
+        const controls = document.createElement("div");
+        controls.className = "quantity-control";
+
+        const minus = document.createElement("button");
+        minus.textContent = "−";
+        minus.dataset.action = "minus";
+        minus.dataset.id = id;
+
+        const quantityText = document.createElement("span");
+        quantityText.textContent = quantity;
+
+        const plus = document.createElement("button");
+        plus.textContent = "+";
+        plus.dataset.action = "plus";
+        plus.dataset.id = id;
+
+        controls.append(minus, quantityText, plus);
+
+        const remove = document.createElement("button");
+        remove.className = "remove-item";
+        remove.textContent = "REMOVE";
+        remove.dataset.action = "remove";
+        remove.dataset.id = id;
+
+        item.append(details, controls, remove);
         cartItems.appendChild(item);
     }
 
     if (totalItems === 0) {
-        cartItems.innerHTML =
-            '<p class="empty-cart">Your shopping bag is currently empty.</p>';
+        const empty = document.createElement("p");
+        empty.className = "empty-cart";
+        empty.textContent = "Your shopping bag is currently empty.";
+        cartItems.appendChild(empty);
     }
 
     cartCount.textContent = totalItems;
     cartTotal.textContent = formatPrice(totalPrice);
-
     checkoutBtn.disabled = totalItems === 0;
 
     saveCart();
@@ -140,7 +256,6 @@ function updateCart() {
 
 // CART BUTTON ACTIONS
 cartItems.addEventListener("click", function(event) {
-
     const button = event.target.closest("button");
 
     if (!button) return;
@@ -167,10 +282,9 @@ cartItems.addEventListener("click", function(event) {
     }
 
     updateCart();
-
 });
 
-// OPEN CART
+// OPEN SHOPPING BAG
 document.getElementById("cartButton").addEventListener("click", function() {
     document.getElementById("cart").scrollIntoView({
         behavior: "smooth"
@@ -179,14 +293,12 @@ document.getElementById("cartButton").addEventListener("click", function() {
 
 // WHATSAPP CHECKOUT
 checkoutBtn.addEventListener("click", function() {
-
-    let message = "Hello AYAN BIN UMAR FABRICS!\n";
+    let message = "Hello AYAN BIN UMAR!\n";
     message += "I would like to place an order:\n\n";
 
     let total = 0;
 
     for (const id in cart) {
-
         const product = products[id];
         const quantity = cart[id];
 
@@ -195,8 +307,7 @@ checkoutBtn.addEventListener("click", function() {
         const subtotal = product.price * quantity;
         total += subtotal;
 
-        message +=
-            product.name +
+        message += product.name +
             "\nQuantity: " + quantity +
             "\nPrice: " + formatPrice(subtotal) +
             "\n\n";
@@ -215,63 +326,48 @@ checkoutBtn.addEventListener("click", function() {
         "?text=" + encodeURIComponent(message);
 
     window.open(whatsappURL, "_blank");
-
 });
 
 // MOBILE MENU
 menuToggle.addEventListener("click", function() {
-
     const isOpen = navbar.classList.toggle("active");
 
     menuToggle.textContent = isOpen ? "✕" : "☰";
-
     menuToggle.setAttribute("aria-expanded", isOpen);
     menuToggle.setAttribute(
         "aria-label",
         isOpen ? "Close menu" : "Open menu"
     );
-
 });
 
-// CLOSE MENU AFTER NAVIGATION
-document.querySelectorAll(".navbar a").forEach(link => {
+// CLOSE MENU
+function closeMenu() {
+    navbar.classList.remove("active");
+    menuToggle.textContent = "☰";
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open menu");
+}
 
+document.querySelectorAll(".navbar a").forEach((link) => {
     link.addEventListener("click", closeMenu);
-
 });
 
-// CLOSE MENU ON OUTSIDE CLICK
 document.addEventListener("click", function(event) {
-
     if (
         !navbar.contains(event.target) &&
         !menuToggle.contains(event.target)
     ) {
         closeMenu();
     }
-
 });
 
-// CLOSE MENU WITH ESCAPE
 document.addEventListener("keydown", function(event) {
-
     if (event.key === "Escape") {
         closeMenu();
     }
-
 });
 
-function closeMenu() {
+// START WEBSITE
+loadProducts();
 
-    navbar.classList.remove("active");
-
-    menuToggle.textContent = "☰";
-    menuToggle.setAttribute("aria-expanded", "false");
-    menuToggle.setAttribute("aria-label", "Open menu");
-
-}
-
-// INITIALIZE WEBSITE
-updateCart();
-
-console.log("AYAN BIN UMAR FABRICS Store Loaded Successfully!");
+console.log("AYAN BIN UMAR Store Loaded Successfully!");
