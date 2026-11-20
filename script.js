@@ -1,5 +1,5 @@
 
-// AYAN FABRICS - SHOPPING STORE
+/* AYAN BIN UMAR FABRICS - SHOPPING STORE */
 
 // PRODUCT DATABASE
 const products = {
@@ -180,7 +180,7 @@ document.getElementById("cartButton").addEventListener("click", function() {
 // WHATSAPP CHECKOUT
 checkoutBtn.addEventListener("click", function() {
 
-    let message = "Hello AYAN FABRICS!\n";
+    let message = "Hello AYAN BIN UMAR FABRICS!\n";
     message += "I would like to place an order:\n\n";
 
     let total = 0;
@@ -274,4 +274,4 @@ function closeMenu() {
 // INITIALIZE WEBSITE
 updateCart();
 
-console.log("AYAN FABRICS Store Loaded Successfully!");
+console.log("AYAN BIN UMAR FABRICS Store Loaded Successfully!");
