@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYAN BIN UMAR | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #faf8f2;
+            color: #123b32;
+        }
+        .container {
+            max-width: 850px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px #0001;
+        }
+        h1, h2 {
+            font-family: 'Amiri', serif;
+            text-align: center;
+        }
+        h1 { color: #123b32; font-size: 38px; }
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+        button {
+            background: #123b32;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background: #1b5547; }
+        .danger { background: #944c40; }
+        .gold { background: #b9975b; color: #fff; }
+        .product {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 7px;
+        }
+        .product button { width: auto; padding: 9px 14px; }
+        .hidden { display: none; }
+        #message { text-align: center; font-weight: bold; }
+        .muted { color: #777; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AYAN BIN UMAR</h1>
+    <p class="muted">ADMIN CONTROL PANEL</p>
+
+    <section id="loginSection">
+        <h2>Admin Login</h2>
+        <input type="email" id="email" placeholder="Admin Email">
+        <input type="password" id="password" placeholder="Admin Password">
+        <button id="loginBtn">Login</button>
+    </section>
+
+    <section id="adminSection" class="hidden">
+        <h2>Manage Products</h2>
+
+        <input type="hidden" id="productId">
+        <input type="text" id="name" placeholder="Product Name">
+        <input type="number" id="price" placeholder="Product Price">
+        <input type="text" id="imageUrl" placeholder="Product Image URL">
+        <select id="status">
+            <option value="available">Available</option>
+            <option value="soldout">Sold Out</option>
+        </select>
+
+        <button id="saveBtn">Save Product</button>
+        <button id="clearBtn" class="gold">Clear Form</button>
+        <button id="logoutBtn" class="danger">Logout</button>
+
+        <p id="message"></p>
+        <h2>All Products</h2>
+        <div id="productList">Loading products...</div>
+    </section>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
+    authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
+    projectId: "ayan-bin-umar-fabrics",
+    storageBucket: "ayan-bin-umar-fabrics.firebasestorage.app",
+    messagingSenderId: "472203328513",
+    appId: "1:472203328513:web:3de6e17dc8379431b49400",
+    measurementId: "G-5JQ417GF6E"
+};
+
+const ADMIN_UID = "9aJwn6GmWeTSbif8oab2bjbWjda2";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const loginSection = document.getElementById("loginSection");
+const adminSection = document.getElementById("adminSection");
+const message = document.getElementById("message");
+const productList = document.getElementById("productList");
+
+function showMessage(text, error = false) {
+    message.textContent = text;
+    message.style.color = error ? "#b00020" : "#123b32";
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (user && user.uid === ADMIN_UID) {
+        loginSection.classList.add("hidden");
+        adminSection.classList.remove("hidden");
+        await loadProducts();
+    } else {
+        loginSection.classList.remove("hidden");
+        adminSection.classList.add("hidden");
+        if (user) await signOut(auth);
+    }
+});
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        alert("Enter email and password.");
+        return;
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        alert("Login failed: " + error.message);
+    }
+});
+
+async function loadProducts() {
+    productList.textContent = "Loading products...";
+
+    try {
+        const snapshot = await getDocs(collection(db, "products"));
+        productList.replaceChildren();
+
+        if (snapshot.empty) {
+            productList.textContent = "No products found.";
+            return;
+        }
+
+        snapshot.forEach((item) => {
+            const data = item.data();
+
+            const card = document.createElement("div");
+            card.className = "product";
+
+            const title = document.createElement("h3");
+            title.textContent = data.name || "Unnamed product";
+
+            const price = document.createElement("p");
+            price.textContent = "Price: Rs. " + (data.price ?? 0);
+
+            const status = document.createElement("p");
+            status.textContent = "Status: " + (data.status || "available");
+
+            const edit = document.createElement("button");
+            edit.textContent = "Edit";
+            edit.addEventListener("click", () => {
+                document.getElementById("productId").value = item.id;
+                document.getElementById("name").value = data.name || "";
+                document.getElementById("price").value = data.price ?? "";
+                document.getElementById("imageUrl").value = data.imageUrl || "";
+                document.getElementById("status").value =
+                    data.status === "soldout" ? "soldout" : "available";
+                showMessage("Editing product: " + (data.name || ""));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+
+            const remove = document.createElement("button");
+            remove.textContent = "Delete";
+            remove.className = "danger";
+            remove.addEventListener("click", async () => {
+                if (!confirm("Delete this product?")) return;
+                try {
+                    await deleteDoc(doc(db, "products", item.id));
+                    showMessage("Product deleted.");
+                    await loadProducts();
+                } catch (error) {
+                    showMessage(error.message, true);
+                }
+            });
+
+            card.append(title, price, status, edit, remove);
+            productList.appendChild(card);
+        });
+    } catch (error) {
+        productList.textContent = "Error: " + error.message;
+    }
+}
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+    const id = document.getElementById("productId").value;
+    const name = document.getElementById("name").value.trim();
+    const price = Number(document.getElementById("price").value);
+    const imageUrl = document.getElementById("imageUrl").value.trim();
+    const status = document.getElementById("status").value;
+
+    if (!name || document.getElementById("price").value === "" ||
+        !Number.isFinite(price) || price < 0) {
+        showMessage("Enter a valid product name and price.", true);
+        return;
+    }
+
+    if (imageUrl && !/^https?:\/\/\S+$/i.test(imageUrl)) {
+        showMessage("Enter a valid image URL.", true);
+        return;
+    }
+
+    const product = { name, price, imageUrl, status };
+
+    try {
+        if (id) {
+            await updateDoc(doc(db, "products", id), product);
+            showMessage("Product updated successfully.");
+        } else {
+            await addDoc(collection(db, "products"), product);
+            showMessage("New product added successfully.");
+        }
+
+        clearForm();
+        await loadProducts();
+    } catch (error) {
+        showMessage("Error: " + error.message, true);
+    }
+});
+
+function clearForm() {
+    document.getElementById("productId").value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("imageUrl").value = "";
+    document.getElementById("status").value = "available";
+}
+
+document.getElementById("clearBtn").addEventListener("click", clearForm);
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+});
+</script>
+
+</body>
+</html>
