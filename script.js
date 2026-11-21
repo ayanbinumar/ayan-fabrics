@@ -1,7 +1,9 @@
 
 /* AYAN BIN UMAR - FIREBASE STORE */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 
 import {
     getFirestore,
@@ -9,7 +11,9 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
+
 // FIREBASE CONFIGURATION
+
 const firebaseConfig = {
     apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
     authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
@@ -20,11 +24,15 @@ const firebaseConfig = {
     measurementId: "G-5JQ417GF6E"
 };
 
+
 // CONNECT FIREBASE
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+
 // PRODUCTS AND CART
+
 let products = {};
 let cart = {};
 
@@ -34,7 +42,9 @@ try {
     cart = {};
 }
 
+
 // WEBSITE ELEMENTS
+
 const productsContainer = document.getElementById("products");
 const cartCount = document.getElementById("cartCount");
 const cartItems = document.getElementById("cartItems");
@@ -44,59 +54,85 @@ const checkoutBtn = document.getElementById("checkoutBtn");
 const menuToggle = document.getElementById("menuToggle");
 const navbar = document.getElementById("navbar");
 
+
 // FORMAT PRICE
+
 function formatPrice(price) {
     return "Rs. " + Number(price).toLocaleString("en-PK");
 }
 
+
 // SAVE CART
+
 function saveCart() {
     localStorage.setItem("ayanCart", JSON.stringify(cart));
 }
 
+
 // LOAD PRODUCTS FROM FIREBASE
+
 async function loadProducts() {
+
     productsContainer.textContent = "Loading products...";
 
     try {
-        const snapshot = await getDocs(collection(db, "products"));
+
+        const snapshot = await getDocs(
+            collection(db, "products")
+        );
 
         products = {};
 
         snapshot.forEach((document) => {
+
             const data = document.data();
 
             products[document.id] = {
                 name: data.name || "Fabric",
                 price: Number(data.price) || 0,
-                imageUrl: data.imageUrl || "",
+
+                // Admin Panel saves image as "image"
+                imageUrl: data.image || data.imageUrl || "",
+
                 status: data.status || "available"
             };
+
         });
 
         displayProducts();
         updateCart();
 
     } catch (error) {
+
         console.error("Firebase error:", error);
 
         productsContainer.textContent =
             "Products could not be loaded. Please try again later.";
+
     }
+
 }
 
+
 // DISPLAY PRODUCTS
+
 function displayProducts() {
+
     productsContainer.innerHTML = "";
 
     const productIds = Object.keys(products);
 
     if (productIds.length === 0) {
-        productsContainer.textContent = "No products available yet.";
+
+        productsContainer.textContent =
+            "No products available yet.";
+
         return;
+
     }
 
     productIds.forEach((id) => {
+
         const product = products[id];
 
         const card = document.createElement("div");
@@ -106,10 +142,19 @@ function displayProducts() {
         imageBox.className = "product-image";
 
         if (product.imageUrl) {
+
             const image = document.createElement("img");
+
             image.src = product.imageUrl;
             image.alt = product.name;
+            image.loading = "lazy";
+
+            image.onerror = function() {
+                image.style.display = "none";
+            };
+
             imageBox.appendChild(image);
+
         }
 
         const info = document.createElement("div");
@@ -128,14 +173,19 @@ function displayProducts() {
         price.textContent = formatPrice(product.price);
 
         const button = document.createElement("button");
+
         button.className = "add-cart";
         button.dataset.id = id;
 
         if (product.status === "available") {
+
             button.textContent = "ADD TO BAG +";
+
         } else {
+
             button.textContent = "SOLD OUT";
             button.disabled = true;
+
         }
 
         bottom.append(price, button);
@@ -143,11 +193,16 @@ function displayProducts() {
         card.append(imageBox, info);
 
         productsContainer.appendChild(card);
+
     });
+
 }
 
+
 // ADD TO CART
+
 productsContainer.addEventListener("click", function(event) {
+
     const button = event.target.closest(".add-cart");
 
     if (!button || button.disabled) return;
@@ -165,20 +220,27 @@ productsContainer.addEventListener("click", function(event) {
     button.textContent = "ADDED ✓";
 
     setTimeout(() => {
-        if (button.isConnected) {
+
+        if (button.isConnected && product.status === "available") {
             button.textContent = "ADD TO BAG +";
         }
+
     }, 1000);
+
 });
 
+
 // UPDATE CART
+
 function updateCart() {
+
     let totalItems = 0;
     let totalPrice = 0;
 
     cartItems.innerHTML = "";
 
     for (const id in cart) {
+
         const product = products[id];
         const quantity = Number(cart[id]);
 
@@ -187,8 +249,10 @@ function updateCart() {
             !Number.isInteger(quantity) ||
             quantity <= 0
         ) {
+
             delete cart[id];
             continue;
+
         }
 
         totalItems += quantity;
@@ -205,7 +269,8 @@ function updateCart() {
         name.textContent = product.name;
 
         const eachPrice = document.createElement("p");
-        eachPrice.textContent = formatPrice(product.price) + " each";
+        eachPrice.textContent =
+            formatPrice(product.price) + " each";
 
         const subtotalText = document.createElement("strong");
         subtotalText.textContent = formatPrice(subtotal);
@@ -237,25 +302,37 @@ function updateCart() {
         remove.dataset.id = id;
 
         item.append(details, controls, remove);
+
         cartItems.appendChild(item);
+
     }
 
     if (totalItems === 0) {
+
         const empty = document.createElement("p");
+
         empty.className = "empty-cart";
-        empty.textContent = "Your shopping bag is currently empty.";
+        empty.textContent =
+            "Your shopping bag is currently empty.";
+
         cartItems.appendChild(empty);
+
     }
 
     cartCount.textContent = totalItems;
     cartTotal.textContent = formatPrice(totalPrice);
+
     checkoutBtn.disabled = totalItems === 0;
 
     saveCart();
+
 }
 
+
 // CART BUTTON ACTIONS
+
 cartItems.addEventListener("click", function(event) {
+
     const button = event.target.closest("button");
 
     if (!button) return;
@@ -266,57 +343,78 @@ cartItems.addEventListener("click", function(event) {
     if (!products[id] || !cart[id]) return;
 
     if (action === "plus") {
+
         cart[id]++;
+
     }
 
     if (action === "minus") {
+
         cart[id]--;
 
         if (cart[id] <= 0) {
             delete cart[id];
         }
+
     }
 
     if (action === "remove") {
+
         delete cart[id];
+
     }
 
     updateCart();
+
 });
 
+
 // OPEN SHOPPING BAG
+
 document.getElementById("cartButton").addEventListener("click", function() {
+
     document.getElementById("cart").scrollIntoView({
         behavior: "smooth"
     });
+
 });
 
+
 // WHATSAPP CHECKOUT
+
 checkoutBtn.addEventListener("click", function() {
+
     let message = "Hello AYAN BIN UMAR!\n";
+
     message += "I would like to place an order:\n\n";
 
     let total = 0;
 
     for (const id in cart) {
+
         const product = products[id];
         const quantity = cart[id];
 
         if (!product || quantity <= 0) continue;
 
         const subtotal = product.price * quantity;
+
         total += subtotal;
 
         message += product.name +
             "\nQuantity: " + quantity +
             "\nPrice: " + formatPrice(subtotal) +
             "\n\n";
+
     }
 
     if (total <= 0) return;
 
     message += "Total: " + formatPrice(total);
-    message += "\n\nPlease confirm availability and delivery details.";
+
+    message +=
+        "\n\nPlease confirm availability and delivery details.";
+
     message += "\nThank you!";
 
     const phone = "923219662393";
@@ -326,48 +424,77 @@ checkoutBtn.addEventListener("click", function() {
         "?text=" + encodeURIComponent(message);
 
     window.open(whatsappURL, "_blank");
+
 });
 
+
 // MOBILE MENU
+
 menuToggle.addEventListener("click", function() {
+
     const isOpen = navbar.classList.toggle("active");
 
     menuToggle.textContent = isOpen ? "✕" : "☰";
+
     menuToggle.setAttribute("aria-expanded", isOpen);
+
     menuToggle.setAttribute(
         "aria-label",
         isOpen ? "Close menu" : "Open menu"
     );
+
 });
+
 
 // CLOSE MENU
+
 function closeMenu() {
+
     navbar.classList.remove("active");
+
     menuToggle.textContent = "☰";
+
     menuToggle.setAttribute("aria-expanded", "false");
+
     menuToggle.setAttribute("aria-label", "Open menu");
+
 }
 
+
 document.querySelectorAll(".navbar a").forEach((link) => {
+
     link.addEventListener("click", closeMenu);
+
 });
 
+
 document.addEventListener("click", function(event) {
+
     if (
         !navbar.contains(event.target) &&
         !menuToggle.contains(event.target)
     ) {
+
         closeMenu();
+
     }
+
 });
+
 
 document.addEventListener("keydown", function(event) {
+
     if (event.key === "Escape") {
+
         closeMenu();
+
     }
+
 });
 
+
 // START WEBSITE
+
 loadProducts();
 
 console.log("AYAN BIN UMAR Store Loaded Successfully!");
