@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | AYAN BIN UMAR</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .product-detail-page {
+            max-width: 1100px;
+            margin: 60px auto;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .detail-image img {
+            width: 100%;
+            max-height: 550px;
+            object-fit: contain;
+            cursor: zoom-in;
+            border-radius: 12px;
+        }
+
+        .detail-info h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .detail-price {
+            font-size: 26px;
+            color: #b18a45;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .detail-description {
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px;
+            text-decoration: none;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.92);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 95%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 38px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media(max-width: 700px) {
+            .product-detail-page {
+                grid-template-columns: 1fr;
+                margin: 20px auto;
+            }
+
+            .detail-info h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="index.html" class="logo">AYAN BIN UMAR</a>
+        <a href="index.html" class="btn">BACK TO STORE</a>
+    </header>
+
+    <a href="index.html" class="back-link">← Back to Collection</a>
+
+    <main class="product-detail-page" id="productDetails">
+        <p>Loading product details...</p>
+    </main>
+
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="closeLightbox">×</button>
+        <img id="lightboxImage" src="" alt="Product image enlarged">
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+        import {
+            getFirestore,
+            doc,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
+            authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
+            projectId: "ayan-bin-umar-fabrics",
+            storageBucket: "ayan-bin-umar-fabrics.firebasestorage.app",
+            messagingSenderId: "472203328513",
+            appId: "1:472203328513:web:3de6e17dc8379431b49400",
+            measurementId: "G-5JQ417GF6E"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const container = document.getElementById("productDetails");
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get("id");
+
+        const formatPrice = price =>
+            "Rs. " + Number(price || 0).toLocaleString("en-PK");
+
+        async function loadProduct() {
+            if (!productId) {
+                container.textContent = "Product not found.";
+                return;
+            }
+
+            try {
+                const productRef = doc(db, "products", productId);
+                const productSnap = await getDoc(productRef);
+
+                if (!productSnap.exists()) {
+                    container.textContent = "Product not found.";
+                    return;
+                }
+
+                const product = productSnap.data();
+                const imageUrl = product.image || product.imageUrl || "";
+
+                container.innerHTML = `
+                    <div class="detail-image">
+                        ${imageUrl
+                            ? `<img id="mainProductImage" src="${imageUrl}" alt="Product image">`
+                            : `<p>Image not available</p>`}
+                    </div>
+
+                    <div class="detail-info">
+                        <h1></h1>
+                        <p class="detail-price"></p>
+                        <p class="detail-description"></p>
+                        <p class="product-status"></p>
+                        <a href="index.html#collection" class="btn">CONTINUE SHOPPING</a>
+                    </div>
+                `;
+
+                container.querySelector("h1").textContent =
+                    product.name || "Fabric";
+
+                container.querySelector(".detail-price").textContent =
+                    formatPrice(product.price);
+
+                container.querySelector(".detail-description").textContent =
+                    product.description || "Premium Quality Fabrics.";
+
+                container.querySelector(".product-status").textContent =
+                    product.status === "available" ? "Available" : "Currently unavailable";
+
+                const mainImage = document.getElementById("mainProductImage");
+
+                if (mainImage) {
+                    mainImage.onerror = () => {
+                        mainImage.alt = "Image could not be loaded";
+                    };
+
+                    mainImage.addEventListener("click", () => {
+                        document.getElementById("lightboxImage").src = imageUrl;
+                        document.getElementById("lightbox").classList.add("active");
+                    });
+                }
+
+                document.title =
+                    (product.name || "Product") + " | AYAN BIN UMAR";
+
+            } catch (error) {
+                console.error(error);
+                container.textContent = "Could not load product. Please try again.";
+            }
+        }
+
+        document.getElementById("closeLightbox").addEventListener("click", () => {
+            document.getElementById("lightbox").classList.remove("active");
+        });
+
+        document.getElementById("lightbox").addEventListener("click", event => {
+            if (event.target.id === "lightbox") {
+                event.currentTarget.classList.remove("active");
+            }
+        });
+
+        loadProduct();
+    </script>
+
+</body>
+</html>

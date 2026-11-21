@@ -90,10 +90,8 @@ async function loadProducts() {
             products[document.id] = {
                 name: data.name || "Fabric",
                 price: Number(data.price) || 0,
-
-                // Admin Panel saves image as "image"
                 imageUrl: data.image || data.imageUrl || "",
-
+                description: data.description || "Premium Quality Fabrics",
                 status: data.status || "available"
             };
 
@@ -124,9 +122,7 @@ function displayProducts() {
 
     if (productIds.length === 0) {
 
-        productsContainer.textContent =
-            "No products available yet.";
-
+        productsContainer.textContent = "No products available yet.";
         return;
 
     }
@@ -137,6 +133,8 @@ function displayProducts() {
 
         const card = document.createElement("div");
         card.className = "product";
+        card.dataset.id = id;
+        card.style.cursor = "pointer";
 
         const imageBox = document.createElement("div");
         imageBox.className = "product-image";
@@ -153,6 +151,11 @@ function displayProducts() {
                 image.style.display = "none";
             };
 
+            image.addEventListener("click", function(event) {
+                event.stopPropagation();
+                openLightbox(product.imageUrl, product.name);
+            });
+
             imageBox.appendChild(image);
 
         }
@@ -164,7 +167,7 @@ function displayProducts() {
         name.textContent = product.name;
 
         const description = document.createElement("p");
-        description.textContent = "Premium Quality Fabrics";
+        description.textContent = product.description;
 
         const bottom = document.createElement("div");
         bottom.className = "product-bottom";
@@ -178,14 +181,10 @@ function displayProducts() {
         button.dataset.id = id;
 
         if (product.status === "available") {
-
             button.textContent = "ADD TO BAG +";
-
         } else {
-
             button.textContent = "SOLD OUT";
             button.disabled = true;
-
         }
 
         bottom.append(price, button);
@@ -199,33 +198,101 @@ function displayProducts() {
 }
 
 
-// ADD TO CART
+// IMAGE LIGHTBOX
+
+function openLightbox(imageUrl, imageName) {
+
+    let lightbox = document.getElementById("storeLightbox");
+
+    if (!lightbox) {
+
+        lightbox = document.createElement("div");
+
+        lightbox.id = "storeLightbox";
+
+        lightbox.style.cssText = `
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.94);
+            z-index:99999;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        `;
+
+        lightbox.innerHTML = `
+            <button id="storeLightboxClose"
+                style="position:absolute;top:15px;right:25px;
+                font-size:40px;color:white;background:none;
+                border:none;cursor:pointer;">×</button>
+
+            <img id="storeLightboxImage"
+                style="max-width:95%;max-height:90vh;
+                object-fit:contain;">
+        `;
+
+        document.body.appendChild(lightbox);
+
+        lightbox.addEventListener("click", function(event) {
+            if (
+                event.target === lightbox ||
+                event.target.id === "storeLightboxClose"
+            ) {
+                lightbox.style.display = "none";
+            }
+        });
+
+    }
+
+    const lightboxImage = document.getElementById("storeLightboxImage");
+
+    lightboxImage.src = imageUrl;
+    lightboxImage.alt = imageName;
+
+    lightbox.style.display = "flex";
+
+}
+
+
+// PRODUCT CARD CLICK
 
 productsContainer.addEventListener("click", function(event) {
 
     const button = event.target.closest(".add-cart");
 
-    if (!button || button.disabled) return;
+    if (button) {
 
-    const id = button.dataset.id;
-    const product = products[id];
+        if (button.disabled) return;
 
-    if (!product || product.status !== "available") return;
+        const id = button.dataset.id;
+        const product = products[id];
 
-    cart[id] = (Number(cart[id]) || 0) + 1;
+        if (!product || product.status !== "available") return;
 
-    saveCart();
-    updateCart();
+        cart[id] = (Number(cart[id]) || 0) + 1;
 
-    button.textContent = "ADDED ✓";
+        saveCart();
+        updateCart();
 
-    setTimeout(() => {
+        button.textContent = "ADDED ✓";
 
-        if (button.isConnected && product.status === "available") {
-            button.textContent = "ADD TO BAG +";
-        }
+        setTimeout(() => {
+            if (button.isConnected && product.status === "available") {
+                button.textContent = "ADD TO BAG +";
+            }
+        }, 1000);
 
-    }, 1000);
+        return;
+    }
+
+    const card = event.target.closest(".product");
+
+    if (card) {
+        const id = card.dataset.id;
+        window.location.href =
+            "product.html?id=" + encodeURIComponent(id);
+    }
 
 });
 
@@ -244,15 +311,9 @@ function updateCart() {
         const product = products[id];
         const quantity = Number(cart[id]);
 
-        if (
-            !product ||
-            !Number.isInteger(quantity) ||
-            quantity <= 0
-        ) {
-
+        if (!product || !Number.isInteger(quantity) || quantity <= 0) {
             delete cart[id];
             continue;
-
         }
 
         totalItems += quantity;
@@ -269,8 +330,7 @@ function updateCart() {
         name.textContent = product.name;
 
         const eachPrice = document.createElement("p");
-        eachPrice.textContent =
-            formatPrice(product.price) + " each";
+        eachPrice.textContent = formatPrice(product.price) + " each";
 
         const subtotalText = document.createElement("strong");
         subtotalText.textContent = formatPrice(subtotal);
@@ -302,7 +362,6 @@ function updateCart() {
         remove.dataset.id = id;
 
         item.append(details, controls, remove);
-
         cartItems.appendChild(item);
 
     }
@@ -310,10 +369,8 @@ function updateCart() {
     if (totalItems === 0) {
 
         const empty = document.createElement("p");
-
         empty.className = "empty-cart";
-        empty.textContent =
-            "Your shopping bag is currently empty.";
+        empty.textContent = "Your shopping bag is currently empty.";
 
         cartItems.appendChild(empty);
 
@@ -343,25 +400,19 @@ cartItems.addEventListener("click", function(event) {
     if (!products[id] || !cart[id]) return;
 
     if (action === "plus") {
-
         cart[id]++;
-
     }
 
     if (action === "minus") {
-
         cart[id]--;
 
         if (cart[id] <= 0) {
             delete cart[id];
         }
-
     }
 
     if (action === "remove") {
-
         delete cart[id];
-
     }
 
     updateCart();
@@ -385,7 +436,6 @@ document.getElementById("cartButton").addEventListener("click", function() {
 checkoutBtn.addEventListener("click", function() {
 
     let message = "Hello AYAN BIN UMAR!\n";
-
     message += "I would like to place an order:\n\n";
 
     let total = 0;
@@ -398,7 +448,6 @@ checkoutBtn.addEventListener("click", function() {
         if (!product || quantity <= 0) continue;
 
         const subtotal = product.price * quantity;
-
         total += subtotal;
 
         message += product.name +
@@ -411,10 +460,7 @@ checkoutBtn.addEventListener("click", function() {
     if (total <= 0) return;
 
     message += "Total: " + formatPrice(total);
-
-    message +=
-        "\n\nPlease confirm availability and delivery details.";
-
+    message += "\n\nPlease confirm availability and delivery details.";
     message += "\nThank you!";
 
     const phone = "923219662393";
@@ -435,7 +481,6 @@ menuToggle.addEventListener("click", function() {
     const isOpen = navbar.classList.toggle("active");
 
     menuToggle.textContent = isOpen ? "✕" : "☰";
-
     menuToggle.setAttribute("aria-expanded", isOpen);
 
     menuToggle.setAttribute(
@@ -451,22 +496,16 @@ menuToggle.addEventListener("click", function() {
 function closeMenu() {
 
     navbar.classList.remove("active");
-
     menuToggle.textContent = "☰";
 
     menuToggle.setAttribute("aria-expanded", "false");
-
     menuToggle.setAttribute("aria-label", "Open menu");
 
 }
 
-
 document.querySelectorAll(".navbar a").forEach((link) => {
-
     link.addEventListener("click", closeMenu);
-
 });
-
 
 document.addEventListener("click", function(event) {
 
@@ -474,20 +513,21 @@ document.addEventListener("click", function(event) {
         !navbar.contains(event.target) &&
         !menuToggle.contains(event.target)
     ) {
-
         closeMenu();
-
     }
 
 });
 
-
 document.addEventListener("keydown", function(event) {
 
     if (event.key === "Escape") {
-
         closeMenu();
 
+        const lightbox = document.getElementById("storeLightbox");
+
+        if (lightbox) {
+            lightbox.style.display = "none";
+        }
     }
 
 });
