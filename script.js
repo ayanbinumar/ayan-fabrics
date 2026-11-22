@@ -11,7 +11,6 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-
 // FIREBASE CONFIGURATION
 
 const firebaseConfig = {
@@ -24,16 +23,15 @@ const firebaseConfig = {
     measurementId: "G-5JQ417GF6E"
 };
 
-
 // CONNECT FIREBASE
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-
 // PRODUCTS AND CART
 
 let products = {};
+
 let cart = {};
 
 try {
@@ -42,10 +40,11 @@ try {
     cart = {};
 }
 
-
 // WEBSITE ELEMENTS
 
-const productsContainer = document.getElementById("products");
+const mensProductsContainer = document.getElementById("mensProducts");
+const womensProductsContainer = document.getElementById("womensProducts");
+
 const cartCount = document.getElementById("cartCount");
 const cartItems = document.getElementById("cartItems");
 const cartTotal = document.getElementById("cartTotal");
@@ -54,13 +53,11 @@ const checkoutBtn = document.getElementById("checkoutBtn");
 const menuToggle = document.getElementById("menuToggle");
 const navbar = document.getElementById("navbar");
 
-
 // FORMAT PRICE
 
 function formatPrice(price) {
     return "Rs. " + Number(price).toLocaleString("en-PK");
 }
-
 
 // SAVE CART
 
@@ -68,18 +65,16 @@ function saveCart() {
     localStorage.setItem("ayanCart", JSON.stringify(cart));
 }
 
-
 // LOAD PRODUCTS FROM FIREBASE
 
 async function loadProducts() {
 
-    productsContainer.textContent = "Loading products...";
+    mensProductsContainer.textContent = "Loading men's collection...";
+    womensProductsContainer.textContent = "Loading women's collection...";
 
     try {
 
-        const snapshot = await getDocs(
-            collection(db, "products")
-        );
+        const snapshot = await getDocs(collection(db, "products"));
 
         products = {};
 
@@ -92,7 +87,8 @@ async function loadProducts() {
                 price: Number(data.price) || 0,
                 imageUrl: data.image || data.imageUrl || "",
                 description: data.description || "Premium Quality Fabrics",
-                status: data.status || "available"
+                status: data.status || "available",
+                category: String(data.category || "").toLowerCase().trim()
             };
 
         });
@@ -104,32 +100,43 @@ async function loadProducts() {
 
         console.error("Firebase error:", error);
 
-        productsContainer.textContent =
-            "Products could not be loaded. Please try again later.";
+        mensProductsContainer.textContent =
+            "Men's products could not be loaded.";
+
+        womensProductsContainer.textContent =
+            "Women's products could not be loaded.";
 
     }
 
 }
 
-
 // DISPLAY PRODUCTS
 
 function displayProducts() {
 
-    productsContainer.innerHTML = "";
+    mensProductsContainer.innerHTML = "";
+    womensProductsContainer.innerHTML = "";
 
     const productIds = Object.keys(products);
 
-    if (productIds.length === 0) {
-
-        productsContainer.textContent = "No products available yet.";
-        return;
-
-    }
+    let mensCount = 0;
+    let womensCount = 0;
 
     productIds.forEach((id) => {
 
         const product = products[id];
+
+        let targetContainer;
+
+        if (product.category === "men") {
+            targetContainer = mensProductsContainer;
+            mensCount++;
+        } else if (product.category === "women") {
+            targetContainer = womensProductsContainer;
+            womensCount++;
+        } else {
+            return;
+        }
 
         const card = document.createElement("div");
         card.className = "product";
@@ -191,12 +198,21 @@ function displayProducts() {
         info.append(name, description, bottom);
         card.append(imageBox, info);
 
-        productsContainer.appendChild(card);
+        targetContainer.appendChild(card);
 
     });
 
-}
+    if (mensCount === 0) {
+        mensProductsContainer.textContent =
+            "Men's collection coming soon.";
+    }
 
+    if (womensCount === 0) {
+        womensProductsContainer.textContent =
+            "Women's collection coming soon.";
+    }
+
+}
 
 // IMAGE LIGHTBOX
 
@@ -254,10 +270,9 @@ function openLightbox(imageUrl, imageName) {
 
 }
 
+// PRODUCT CARD CLICK AND ADD TO BAG
 
-// PRODUCT CARD CLICK
-
-productsContainer.addEventListener("click", function(event) {
+function handleProductClick(event) {
 
     const button = event.target.closest(".add-cart");
 
@@ -289,13 +304,18 @@ productsContainer.addEventListener("click", function(event) {
     const card = event.target.closest(".product");
 
     if (card) {
+
         const id = card.dataset.id;
+
         window.location.href =
             "product.html?id=" + encodeURIComponent(id);
+
     }
 
-});
+}
 
+mensProductsContainer.addEventListener("click", handleProductClick);
+womensProductsContainer.addEventListener("click", handleProductClick);
 
 // UPDATE CART
 
@@ -385,7 +405,6 @@ function updateCart() {
 
 }
 
-
 // CART BUTTON ACTIONS
 
 cartItems.addEventListener("click", function(event) {
@@ -419,7 +438,6 @@ cartItems.addEventListener("click", function(event) {
 
 });
 
-
 // OPEN SHOPPING BAG
 
 document.getElementById("cartButton").addEventListener("click", function() {
@@ -429,7 +447,6 @@ document.getElementById("cartButton").addEventListener("click", function() {
     });
 
 });
-
 
 // WHATSAPP CHECKOUT
 
@@ -473,7 +490,6 @@ checkoutBtn.addEventListener("click", function() {
 
 });
 
-
 // MOBILE MENU
 
 menuToggle.addEventListener("click", function() {
@@ -489,7 +505,6 @@ menuToggle.addEventListener("click", function() {
     );
 
 });
-
 
 // CLOSE MENU
 
@@ -521,6 +536,7 @@ document.addEventListener("click", function(event) {
 document.addEventListener("keydown", function(event) {
 
     if (event.key === "Escape") {
+
         closeMenu();
 
         const lightbox = document.getElementById("storeLightbox");
@@ -528,10 +544,10 @@ document.addEventListener("keydown", function(event) {
         if (lightbox) {
             lightbox.style.display = "none";
         }
+
     }
 
 });
-
 
 // START WEBSITE
 
@@ -540,8 +556,11 @@ loadProducts();
 console.log("AYAN BIN UMAR Store Loaded Successfully!");
 
 // REGISTER SERVICE WORKER
+
 if ("serviceWorker" in navigator) {
+
     window.addEventListener("load", () => {
+
         navigator.serviceWorker.register("./service-worker.js")
             .then(() => {
                 console.log("AYAN BIN UMAR app is ready!");
@@ -549,5 +568,7 @@ if ("serviceWorker" in navigator) {
             .catch((error) => {
                 console.error("Service Worker Error:", error);
             });
+
     });
+
 }

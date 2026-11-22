@@ -40,16 +40,17 @@
             letter-spacing: 2px;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 13px;
             margin: 9px 0;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 15px;
+            background: white;
         }
 
-        input:focus {
+        input:focus, select:focus {
             outline: 2px solid #d8bb83;
             border-color: #123b32;
         }
@@ -137,6 +138,23 @@
             margin: 18px 0;
         }
 
+        .category-label {
+            display: block;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .category-tag {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 8px 0;
+            background: #f4ead5;
+            color: #123b32;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -186,7 +204,7 @@
 
     </div>
 
-    <!-- DASHBOARD SECTION -->
+    <!-- DASHBOARD -->
     <div id="dashboard">
 
         <h2>Manage Products</h2>
@@ -208,6 +226,16 @@
                 step="1"
             >
 
+            <label class="category-label" for="productCategory">
+                Select Collection
+            </label>
+
+            <select id="productCategory">
+                <option value="">Choose Collection</option>
+                <option value="men">Men's Collection</option>
+                <option value="women">Women's Collection</option>
+            </select>
+
             <input
                 type="url"
                 id="productImage"
@@ -222,10 +250,7 @@
 
             <button id="saveBtn">ADD PRODUCT</button>
 
-            <button
-                id="cancelBtn"
-                style="display:none;"
-            >
+            <button id="cancelBtn" style="display:none;">
                 CANCEL EDIT
             </button>
 
@@ -303,9 +328,11 @@
 
     const productName = document.getElementById("productName");
     const productPrice = document.getElementById("productPrice");
+    const productCategory = document.getElementById("productCategory");
     const productImage = document.getElementById("productImage");
 
     const imagePreview = document.getElementById("imagePreview");
+
     const saveBtn = document.getElementById("saveBtn");
     const cancelBtn = document.getElementById("cancelBtn");
 
@@ -401,9 +428,7 @@
     });
 
     imagePreview.addEventListener("error", () => {
-
         imagePreview.style.display = "none";
-
     });
 
 
@@ -415,17 +440,13 @@
 
         try {
 
-            const snapshot = await getDocs(
-                collection(db, "products")
-            );
+            const snapshot = await getDocs(collection(db, "products"));
 
             productList.innerHTML = "";
 
             if (snapshot.empty) {
-
                 productList.textContent = "No products found.";
                 return;
-
             }
 
             snapshot.forEach((item) => {
@@ -441,7 +462,18 @@
                 const price = document.createElement("p");
                 price.textContent = "Price: Rs. " + product.price;
 
-                card.append(heading, price);
+                const category = document.createElement("p");
+                category.className = "category-tag";
+
+                if (product.category === "men") {
+                    category.textContent = "MEN'S COLLECTION";
+                } else if (product.category === "women") {
+                    category.textContent = "WOMEN'S COLLECTION";
+                } else {
+                    category.textContent = "CATEGORY NOT SET";
+                }
+
+                card.append(heading, price, category);
 
 
                 // PRODUCT IMAGE
@@ -472,6 +504,7 @@
 
                     productName.value = product.name || "";
                     productPrice.value = product.price || "";
+                    productCategory.value = product.category || "";
                     productImage.value = product.image || "";
 
                     editingId = item.id;
@@ -480,17 +513,16 @@
                     cancelBtn.style.display = "inline-block";
 
                     if (product.image) {
-
                         imagePreview.src = product.image;
                         imagePreview.style.display = "block";
-
                     } else {
-
                         imagePreview.style.display = "none";
-
                     }
 
-                    showMessage("Editing product: " + (product.name || "") , true);
+                    showMessage(
+                        "Editing product: " + (product.name || ""),
+                        true
+                    );
 
                     window.scrollTo({
                         top: 0,
@@ -515,9 +547,7 @@
 
                     try {
 
-                        await deleteDoc(
-                            doc(db, "products", item.id)
-                        );
+                        await deleteDoc(doc(db, "products", item.id));
 
                         showMessage("Product deleted successfully!", true);
 
@@ -530,7 +560,6 @@
                     }
 
                 });
-
 
                 card.append(edit, remove);
 
@@ -555,36 +584,37 @@
         const name = productName.value.trim();
         const priceValue = productPrice.value.trim();
         const price = Number(priceValue);
+        const category = productCategory.value;
         const image = productImage.value.trim();
 
 
         // VALIDATION
 
         if (!name) {
-
             showMessage("Please enter product name.");
             return;
-
         }
 
         if (!priceValue || !Number.isFinite(price) || price <= 0) {
-
             showMessage("Please enter a valid product price.");
             return;
+        }
 
+        if (category !== "men" && category !== "women") {
+            showMessage("Please select a collection.");
+            return;
         }
 
         if (image && !/^https?:\/\//i.test(image)) {
-
             showMessage("Please enter a valid image URL.");
             return;
-
         }
 
 
         const data = {
             name: name,
             price: price,
+            category: category,
             image: image
         };
 
@@ -625,9 +655,9 @@
 
             saveBtn.disabled = false;
 
-            if (!editingId) {
-                saveBtn.textContent = "ADD PRODUCT";
-            }
+            saveBtn.textContent = editingId
+                ? "UPDATE PRODUCT"
+                : "ADD PRODUCT";
 
         }
 
@@ -640,6 +670,7 @@
 
         productName.value = "";
         productPrice.value = "";
+        productCategory.value = "";
         productImage.value = "";
 
         imagePreview.removeAttribute("src");
