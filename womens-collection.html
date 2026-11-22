@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071b14">
+
+    <title>Women's Collection | AYAN BIN UMAR</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            background: #071b14;
+            color: #e8d5a5;
+            font-family: Georgia, serif;
+        }
+
+        .collection-page {
+            max-width: 1200px;
+            margin: auto;
+            padding: 45px 20px;
+            text-align: center;
+        }
+
+        .collection-page h1 {
+            font-size: 32px;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+        }
+
+        .collection-page > p {
+            color: #d5c49a;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #e8d5a5;
+            margin: 20px 0 35px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: #c5a45e;
+        }
+
+        .collection-products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            text-align: left;
+        }
+
+        .collection-card {
+            background: #10271e;
+            border: 1px solid #927b49;
+            padding: 14px;
+        }
+
+        .collection-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .collection-card h3 {
+            color: #e8d5a5;
+            margin: 14px 0 8px;
+        }
+
+        .collection-card p {
+            color: #d5c49a;
+        }
+
+        .collection-card button {
+            background: #c5a45e;
+            color: #071b14;
+            border: none;
+            padding: 11px 18px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .collection-card button:hover {
+            background: #e8d5a5;
+        }
+
+        .message {
+            margin: 35px 0;
+            color: #e8d5a5;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 600px) {
+            .collection-page {
+                padding: 30px 15px;
+            }
+
+            .collection-page h1 {
+                font-size: 25px;
+            }
+
+            .collection-products {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .collection-card {
+                padding: 9px;
+            }
+
+            .collection-card img {
+                height: 190px;
+            }
+
+            .collection-card button {
+                width: 100%;
+                padding: 10px 5px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="collection-page">
+
+        <h1>WOMEN'S COLLECTION</h1>
+
+        <p>Discover our elegant women's fabrics.</p>
+
+        <a class="back-link" href="collections.html">
+            ← BACK TO COLLECTIONS
+        </a>
+
+        <div id="collectionProducts" class="collection-products">
+            <p class="message">Loading women's collection...</p>
+        </div>
+
+    </main>
+
+    <script type="module">
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+        import {
+            getFirestore,
+            collection,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+
+        // FIREBASE CONFIGURATION
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
+            authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
+            projectId: "ayan-bin-umar-fabrics",
+            storageBucket: "ayan-bin-umar-fabrics.firebasestorage.app",
+            messagingSenderId: "472203328513",
+            appId: "1:472203328513:web:3de6e17dc8379431b49400",
+            measurementId: "G-5JQ417GF6E"
+        };
+
+
+        // CONNECT FIREBASE
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+
+        // PRODUCTS CONTAINER
+
+        const productsContainer =
+            document.getElementById("collectionProducts");
+
+
+        // FORMAT PRICE
+
+        function formatPrice(price) {
+            return "Rs. " +
+                Number(price || 0).toLocaleString("en-PK");
+        }
+
+
+        // OPEN PRODUCT PAGE
+
+        function openProduct(id) {
+            window.location.href =
+                "product.html?id=" + encodeURIComponent(id);
+        }
+
+
+        // LOAD WOMEN'S PRODUCTS
+
+        async function loadWomenProducts() {
+
+            try {
+
+                const snapshot = await getDocs(
+                    collection(db, "products")
+                );
+
+                productsContainer.innerHTML = "";
+
+                let count = 0;
+
+                snapshot.forEach((docSnap) => {
+
+                    const product = docSnap.data();
+
+                    const category = String(
+                        product.category || ""
+                    ).toLowerCase().trim();
+
+                    if (category !== "women") {
+                        return;
+                    }
+
+                    count++;
+
+                    const imageUrl =
+                        product.image || product.imageUrl || "";
+
+                    const card = document.createElement("article");
+                    card.className = "collection-card";
+
+
+                    // PRODUCT IMAGE
+
+                    if (imageUrl) {
+
+                        const image = document.createElement("img");
+
+                        image.src = imageUrl;
+                        image.alt = product.name || "Women's fabric";
+                        image.loading = "lazy";
+
+                        image.onerror = function() {
+                            image.style.display = "none";
+                        };
+
+                        image.addEventListener("click", () => {
+                            openProduct(docSnap.id);
+                        });
+
+                        card.appendChild(image);
+
+                    }
+
+
+                    // PRODUCT NAME
+
+                    const name = document.createElement("h3");
+
+                    name.textContent =
+                        product.name || "Premium Fabric";
+
+
+                    // PRODUCT DESCRIPTION
+
+                    const description = document.createElement("p");
+
+                    description.textContent =
+                        product.description ||
+                        "Premium Quality Fabrics";
+
+
+                    // PRODUCT PRICE
+
+                    const price = document.createElement("p");
+
+                    price.textContent =
+                        formatPrice(product.price);
+
+
+                    // VIEW PRODUCT BUTTON
+
+                    const button = document.createElement("button");
+
+                    button.textContent = "VIEW PRODUCT";
+
+                    button.addEventListener("click", () => {
+                        openProduct(docSnap.id);
+                    });
+
+
+                    // ADD ELEMENTS
+
+                    card.append(
+                        name,
+                        description,
+                        price,
+                        button
+                    );
+
+                    productsContainer.appendChild(card);
+
+                });
+
+
+                // NO PRODUCTS
+
+                if (count === 0) {
+
+                    productsContainer.innerHTML =
+                        '<p class="message">Women\'s collection coming soon.</p>';
+
+                }
+
+            } catch (error) {
+
+                console.error("Firebase Error:", error);
+
+                productsContainer.innerHTML =
+                    '<p class="message">Products could not be loaded. Please try again.</p>';
+
+            }
+
+        }
+
+
+        // START
+
+        loadWomenProducts();
+
+    </script>
+
+</body>
+</html>
