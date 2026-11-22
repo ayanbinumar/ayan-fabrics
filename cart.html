@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shopping Bag | AYAN BIN UMAR</title>
+
+    <meta name="theme-color" content="#071b14">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #071b14;
+            color: #e8d5a5;
+            font-family: Georgia, serif;
+            min-height: 100vh;
+        }
+
+        header {
+            min-height: 75px;
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #b99a58;
+            gap: 15px;
+        }
+
+        .brand {
+            color: #c5a568;
+            font-size: 21px;
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .continue {
+            color: #e8d5a5;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 45px auto;
+            padding: 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: #c5a568;
+            font-size: 32px;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa995;
+            margin-bottom: 40px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 22px 0;
+            border-bottom: 1px solid #405047;
+        }
+
+        .product-image {
+            width: 105px;
+            height: 120px;
+            object-fit: cover;
+            background: #193329;
+            border: 1px solid #526056;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-info h3 {
+            font-size: 18px;
+            margin-bottom: 9px;
+            color: #e8d5a5;
+        }
+
+        .item-price {
+            color: #c5a568;
+            font-size: 15px;
+        }
+
+        .quantity {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-top: 14px;
+        }
+
+        .quantity button {
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            border: 1px solid #b99a58;
+            color: #e8d5a5;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .remove {
+            display: block;
+            margin-top: 12px;
+            background: none;
+            border: none;
+            color: #d69b82;
+            cursor: pointer;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .item-subtotal {
+            color: #c5a568;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .summary {
+            margin-top: 35px;
+            padding: 25px;
+            border: 1px solid #b99a58;
+        }
+
+        .summary h2 {
+            color: #c5a568;
+            font-size: 20px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 14px 0;
+            gap: 15px;
+        }
+
+        .total-row {
+            border-top: 1px solid #526056;
+            padding-top: 18px;
+            color: #c5a568;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .checkout {
+            display: block;
+            width: 100%;
+            margin-top: 25px;
+            padding: 17px;
+            background: #b99a58;
+            color: #071b14;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .checkout:hover {
+            background: #e8d5a5;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 65px 15px;
+            border: 1px solid #405047;
+        }
+
+        .empty h2 {
+            color: #c5a568;
+            margin-bottom: 15px;
+            font-size: 23px;
+        }
+
+        .empty p {
+            color: #aaa995;
+            margin-bottom: 25px;
+        }
+
+        .shop-button {
+            display: inline-block;
+            padding: 13px 24px;
+            background: #b99a58;
+            color: #071b14;
+            text-decoration: none;
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 45px;
+            color: #c5a568;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #aaa995;
+            border-top: 1px solid #405047;
+            font-size: 12px;
+        }
+
+        @media(max-width: 550px) {
+            header {
+                padding: 17px 5%;
+            }
+
+            .brand {
+                font-size: 16px;
+            }
+
+            .continue {
+                font-size: 10px;
+            }
+
+            .container {
+                margin: 25px auto;
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 25px;
+            }
+
+            .cart-item {
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .product-image {
+                width: 82px;
+                height: 100px;
+            }
+
+            .item-info h3 {
+                font-size: 15px;
+            }
+
+            .item-subtotal {
+                margin-left: auto;
+                font-size: 13px;
+            }
+
+            .summary {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html" class="brand">
+        AYAN BIN UMAR
+    </a>
+
+    <a href="collections.html" class="continue">
+        CONTINUE SHOPPING
+    </a>
+</header>
+
+<main class="container">
+
+    <h1 class="page-title">SHOPPING BAG</h1>
+
+    <p class="subtitle">
+        Your Selected Products
+    </p>
+
+    <div id="cartItems">
+        <div class="loading">
+            Loading your shopping bag...
+        </div>
+    </div>
+
+    <section id="summary" class="summary" hidden>
+
+        <h2>ORDER SUMMARY</h2>
+
+        <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="subtotal">Rs. 0</span>
+        </div>
+
+        <div class="summary-row">
+            <span>Delivery Charges</span>
+            <span>Calculated at checkout</span>
+        </div>
+
+        <div class="summary-row total-row">
+            <span>Total</span>
+            <span id="total">Rs. 0</span>
+        </div>
+
+        <button id="checkoutBtn" class="checkout">
+            PROCEED TO CHECKOUT
+        </button>
+
+    </section>
+
+</main>
+
+<footer>
+    AYAN BIN UMAR
+    <p>Where Quality Meets Elegance</p>
+</footer>
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+
+// FIREBASE CONFIGURATION
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
+    authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
+    projectId: "ayan-bin-umar-fabrics",
+    storageBucket: "ayan-bin-umar-fabrics.firebasestorage.app",
+    messagingSenderId: "472203328513",
+    appId: "1:472203328513:web:3de6e17dc8379431b49400",
+    measurementId: "G-5JQ417GF6E"
+};
+
+
+// CONNECT FIREBASE
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+// CART AND PRODUCTS
+
+let cart = {};
+
+let products = {};
+
+try {
+    cart = JSON.parse(localStorage.getItem("ayanCart")) || {};
+} catch (error) {
+    cart = {};
+}
+
+
+// WEBSITE ELEMENTS
+
+const cartItems = document.getElementById("cartItems");
+const summary = document.getElementById("summary");
+const subtotalElement = document.getElementById("subtotal");
+const totalElement = document.getElementById("total");
+const checkoutBtn = document.getElementById("checkoutBtn");
+
+
+// FORMAT PRICE
+
+function formatPrice(price) {
+    return "Rs. " + Number(price).toLocaleString("en-PK");
+}
+
+
+// SAVE CART
+
+function saveCart() {
+    localStorage.setItem(
+        "ayanCart",
+        JSON.stringify(cart)
+    );
+}
+
+
+// LOAD PRODUCTS
+
+async function loadCart() {
+
+    try {
+
+        const snapshot = await getDocs(
+            collection(db, "products")
+        );
+
+        products = {};
+
+        snapshot.forEach((document) => {
+
+            const data = document.data();
+
+            products[document.id] = {
+                name: data.name || "Fabric",
+                price: Number(data.price) || 0,
+                image: data.image || data.imageUrl || "",
+                status: data.status || "available"
+            };
+
+        });
+
+        displayCart();
+
+    } catch (error) {
+
+        console.error("Firebase error:", error);
+
+        cartItems.textContent =
+            "Unable to load your shopping bag. Please refresh the page.";
+
+    }
+
+}
+
+
+// DISPLAY CART
+
+function displayCart() {
+
+    cartItems.innerHTML = "";
+
+    let totalItems = 0;
+    let totalPrice = 0;
+
+    for (const id in cart) {
+
+        const product = products[id];
+        const quantity = Number(cart[id]);
+
+        if (
+            !product ||
+            !Number.isInteger(quantity) ||
+            quantity <= 0 ||
+            product.status !== "available"
+        ) {
+            delete cart[id];
+            continue;
+        }
+
+        totalItems += quantity;
+
+        const itemTotal = product.price * quantity;
+
+        totalPrice += itemTotal;
+
+
+        // PRODUCT ITEM
+
+        const item = document.createElement("div");
+
+        item.className = "cart-item";
+
+
+        // PRODUCT IMAGE
+
+        const image = document.createElement("img");
+
+        image.className = "product-image";
+
+        image.src = product.image;
+
+        image.alt = product.name;
+
+        image.onerror = function() {
+            image.style.visibility = "hidden";
+        };
+
+
+        // PRODUCT INFORMATION
+
+        const info = document.createElement("div");
+
+        info.className = "item-info";
+
+        const name = document.createElement("h3");
+
+        name.textContent = product.name;
+
+        const price = document.createElement("p");
+
+        price.className = "item-price";
+
+        price.textContent = formatPrice(product.price);
+
+
+        // QUANTITY CONTROLS
+
+        const quantityBox = document.createElement("div");
+
+        quantityBox.className = "quantity";
+
+
+        const minus = document.createElement("button");
+
+        minus.textContent = "−";
+
+        minus.setAttribute("aria-label", "Decrease quantity");
+
+        minus.onclick = () => changeQuantity(id, -1);
+
+
+        const count = document.createElement("span");
+
+        count.textContent = quantity;
+
+
+        const plus = document.createElement("button");
+
+        plus.textContent = "+";
+
+        plus.setAttribute("aria-label", "Increase quantity");
+
+        plus.onclick = () => changeQuantity(id, 1);
+
+
+        quantityBox.append(minus, count, plus);
+
+
+        // REMOVE BUTTON
+
+        const remove = document.createElement("button");
+
+        remove.className = "remove";
+
+        remove.textContent = "REMOVE ITEM";
+
+        remove.onclick = () => removeProduct(id);
+
+
+        // SUBTOTAL
+
+        const itemSubtotal = document.createElement("div");
+
+        itemSubtotal.className = "item-subtotal";
+
+        itemSubtotal.textContent = formatPrice(itemTotal);
+
+
+        info.append(
+            name,
+            price,
+            quantityBox,
+            remove
+        );
+
+        item.append(
+            image,
+            info,
+            itemSubtotal
+        );
+
+        cartItems.appendChild(item);
+
+    }
+
+
+    saveCart();
+
+
+    // EMPTY CART
+
+    if (totalItems === 0) {
+
+        summary.hidden = true;
+
+        const empty = document.createElement("div");
+
+        empty.className = "empty";
+
+        const heading = document.createElement("h2");
+
+        heading.textContent = "Your Shopping Bag is Empty";
+
+        const message = document.createElement("p");
+
+        message.textContent =
+            "Discover our premium fabric collections.";
+
+        const shop = document.createElement("a");
+
+        shop.className = "shop-button";
+
+        shop.href = "collections.html";
+
+        shop.textContent = "EXPLORE COLLECTIONS";
+
+        empty.append(heading, message, shop);
+
+        cartItems.appendChild(empty);
+
+        return;
+
+    }
+
+
+    // ORDER SUMMARY
+
+    summary.hidden = false;
+
+    subtotalElement.textContent = formatPrice(totalPrice);
+
+    totalElement.textContent = formatPrice(totalPrice);
+
+}
+
+
+// CHANGE QUANTITY
+
+function changeQuantity(id, amount) {
+
+    cart[id] = Number(cart[id]) + amount;
+
+    if (cart[id] <= 0) {
+        delete cart[id];
+    }
+
+    saveCart();
+
+    displayCart();
+
+}
+
+
+// REMOVE PRODUCT
+
+function removeProduct(id) {
+
+    delete cart[id];
+
+    saveCart();
+
+    displayCart();
+
+}
+
+
+// CHECKOUT
+
+checkoutBtn.addEventListener("click", function() {
+
+    if (Object.keys(cart).length === 0) {
+        return;
+    }
+
+    window.location.href = "checkout.html";
+
+});
+
+
+// START
+
+loadCart();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,661 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Checkout | AYAN BIN UMAR</title>
+    <meta name="theme-color" content="#071b14">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #071b14;
+            color: #e8d5a5;
+            font-family: Georgia, serif;
+        }
+
+        header {
+            padding: 22px 6%;
+            border-bottom: 1px solid #b99a58;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header a {
+            color: #c5a568;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #c5a568;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa995;
+            margin-bottom: 35px;
+        }
+
+        .section {
+            border: 1px solid #8f7748;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #c5a568;
+            font-size: 20px;
+            letter-spacing: 2px;
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            margin: 17px 0 8px;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            background: #10271e;
+            border: 1px solid #526056;
+            color: #e8d5a5;
+            outline: none;
+            font-family: Georgia, serif;
+            font-size: 15px;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #c5a568;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .payment-option {
+            border: 1px solid #b99a58;
+            padding: 17px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .payment-option input {
+            width: auto;
+            accent-color: #b99a58;
+        }
+
+        .payment-option span {
+            font-size: 15px;
+        }
+
+        .order-product {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 13px 0;
+            border-bottom: 1px solid #405047;
+        }
+
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 20px;
+            color: #c5a568;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .place-order {
+            width: 100%;
+            padding: 17px;
+            background: #b99a58;
+            color: #071b14;
+            border: none;
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+
+        .place-order:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .note {
+            color: #aaa995;
+            font-size: 13px;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #aaa995;
+            border-top: 1px solid #405047;
+            font-size: 12px;
+        }
+
+        @media(max-width: 550px) {
+            .container {
+                padding: 15px;
+            }
+
+            .section {
+                padding: 18px;
+            }
+
+            header {
+                padding: 18px 5%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html">AYAN BIN UMAR</a>
+    <a href="cart.html">BACK TO BAG</a>
+</header>
+
+<main class="container">
+
+    <h1>CHECKOUT</h1>
+
+    <p class="subtitle">
+        Complete Your Order
+    </p>
+
+    <form id="checkoutForm">
+
+        <section class="section">
+
+            <h2>DELIVERY DETAILS</h2>
+
+            <label for="customerName">Full Name *</label>
+
+            <input
+                type="text"
+                id="customerName"
+                required
+                maxlength="100"
+                autocomplete="name"
+                placeholder="Enter your full name"
+            >
+
+            <label for="customerPhone">Mobile Number *</label>
+
+            <input
+                type="tel"
+                id="customerPhone"
+                required
+                maxlength="20"
+                autocomplete="tel"
+                placeholder="03XXXXXXXXX"
+            >
+
+            <label for="customerAddress">Complete Delivery Address *</label>
+
+            <textarea
+                id="customerAddress"
+                required
+                maxlength="500"
+                autocomplete="street-address"
+                placeholder="House number, street, area, city"
+            ></textarea>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>PAYMENT METHOD</h2>
+
+            <label class="payment-option">
+
+                <input
+                    type="radio"
+                    name="payment"
+                    value="Cash on Delivery"
+                    checked
+                >
+
+                <span>
+                    <strong>Cash on Delivery (COD)</strong>
+                    <br>
+                    <small>Pay when your order arrives</small>
+                </span>
+
+            </label>
+
+            <p class="note">
+                Your payment will be collected when your order is delivered.
+            </p>
+
+        </section>
+
+
+        <section class="section">
+
+            <h2>YOUR ORDER</h2>
+
+            <div id="orderProducts">
+                Loading products...
+            </div>
+
+            <div class="order-total">
+                <span>Total</span>
+                <span id="orderTotal">Rs. 0</span>
+            </div>
+
+        </section>
+
+        <button
+            type="submit"
+            class="place-order"
+            id="placeOrderBtn"
+        >
+            PLACE ORDER
+        </button>
+
+        <p class="note">
+            By placing your order, you confirm that your delivery details are correct.
+        </p>
+
+    </form>
+
+</main>
+
+<footer>
+    AYAN BIN UMAR
+    <p>Where Quality Meets Elegance</p>
+</footer>
+
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+
+// FIREBASE CONFIGURATION
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
+    authDomain: "ayan-bin-umar-fabrics.firebaseapp.com",
+    projectId: "ayan-bin-umar-fabrics",
+    storageBucket: "ayan-bin-umar-fabrics.firebasestorage.app",
+    messagingSenderId: "472203328513",
+    appId: "1:472203328513:web:3de6e17dc8379431b49400",
+    measurementId: "G-5JQ417GF6E"
+};
+
+
+// CONNECT FIREBASE
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+// CART
+
+let cart = {};
+
+try {
+    cart = JSON.parse(localStorage.getItem("ayanCart")) || {};
+} catch (error) {
+    cart = {};
+}
+
+let products = {};
+
+let orderTotal = 0;
+
+let submitting = false;
+
+const orderProducts = document.getElementById("orderProducts");
+
+const totalElement = document.getElementById("orderTotal");
+
+const form = document.getElementById("checkoutForm");
+
+const placeOrderBtn = document.getElementById("placeOrderBtn");
+
+const formatPrice = price =>
+    "Rs. " + Number(price).toLocaleString("en-PK");
+
+
+// LOAD PRODUCTS
+
+async function loadProducts() {
+
+    try {
+
+        const snapshot = await getDocs(
+            collection(db, "products")
+        );
+
+        products = {};
+
+        snapshot.forEach(document => {
+
+            const data = document.data();
+
+            products[document.id] = {
+                name: data.name || "Fabric",
+                price: Number(data.price) || 0,
+                status: data.status || "available"
+            };
+
+        });
+
+        displayOrder();
+
+    } catch (error) {
+
+        console.error(error);
+
+        orderProducts.textContent =
+            "Unable to load your order. Please try again.";
+
+        placeOrderBtn.disabled = true;
+
+    }
+
+}
+
+
+// DISPLAY ORDER
+
+function displayOrder() {
+
+    orderProducts.innerHTML = "";
+
+    orderTotal = 0;
+
+    let count = 0;
+
+    for (const id in cart) {
+
+        const product = products[id];
+
+        const quantity = Number(cart[id]);
+
+        if (
+            !product ||
+            !Number.isInteger(quantity) ||
+            quantity <= 0 ||
+            product.status !== "available"
+        ) {
+            delete cart[id];
+            continue;
+        }
+
+        const subtotal = product.price * quantity;
+
+        orderTotal += subtotal;
+
+        count += quantity;
+
+        const row = document.createElement("div");
+
+        row.className = "order-product";
+
+        const name = document.createElement("span");
+
+        name.textContent =
+            product.name + " × " + quantity;
+
+        const price = document.createElement("strong");
+
+        price.textContent = formatPrice(subtotal);
+
+        row.append(name, price);
+
+        orderProducts.appendChild(row);
+
+    }
+
+    localStorage.setItem(
+        "ayanCart",
+        JSON.stringify(cart)
+    );
+
+    totalElement.textContent = formatPrice(orderTotal);
+
+    if (count === 0) {
+
+        orderProducts.textContent =
+            "Your shopping bag is empty.";
+
+        placeOrderBtn.disabled = true;
+
+    }
+
+}
+
+
+// PLACE ORDER
+
+form.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    if (submitting) return;
+
+    if (Object.keys(cart).length === 0 || orderTotal <= 0) {
+        alert("Your shopping bag is empty.");
+        return;
+    }
+
+    const name = document.getElementById("customerName").value.trim();
+
+    const phone = document.getElementById("customerPhone").value.trim();
+
+    const address = document.getElementById("customerAddress").value.trim();
+
+    if (!name || !phone || !address) {
+        alert("Please complete all delivery details.");
+        return;
+    }
+
+    if (!/^[0-9+\-\s()]{7,20}$/.test(phone)) {
+        alert("Please enter a valid phone number.");
+        return;
+    }
+
+
+    // PREPARE ORDER ITEMS
+
+    const orderItems = [];
+
+    let verifiedTotal = 0;
+
+    for (const id in cart) {
+
+        const product = products[id];
+
+        const quantity = Number(cart[id]);
+
+        if (
+            !product ||
+            product.status !== "available" ||
+            !Number.isInteger(quantity) ||
+            quantity <= 0
+        ) {
+            alert("One or more products are unavailable. Please check your bag.");
+            return;
+        }
+
+        const itemSubtotal = product.price * quantity;
+
+        verifiedTotal += itemSubtotal;
+
+        orderItems.push({
+            productId: id,
+            name: product.name,
+            price: product.price,
+            quantity: quantity,
+            subtotal: itemSubtotal
+        });
+
+    }
+
+    submitting = true;
+
+    placeOrderBtn.disabled = true;
+
+    placeOrderBtn.textContent = "PLACING ORDER...";
+
+
+    try {
+
+        // SAVE ORDER IN FIRESTORE
+
+        const orderData = {
+
+            customerName: name,
+
+            customerPhone: phone,
+
+            customerAddress: address,
+
+            paymentMethod: "Cash on Delivery",
+
+            items: orderItems,
+
+            total: verifiedTotal,
+
+            status: "Pending",
+
+            createdAt: serverTimestamp()
+
+        };
+
+        const orderRef = await addDoc(
+            collection(db, "orders"),
+            orderData
+        );
+
+
+        // WHATSAPP MESSAGE
+
+        let message = "Hello AYAN BIN UMAR!\n\n";
+
+        message += "I have placed an order.\n\n";
+
+        message += "Order ID: " + orderRef.id + "\n";
+
+        message += "Customer: " + name + "\n";
+
+        message += "Phone: " + phone + "\n";
+
+        message += "Address: " + address + "\n\n";
+
+        message += "ORDER DETAILS:\n\n";
+
+        orderItems.forEach(item => {
+
+            message += item.name + "\n";
+
+            message += "Quantity: " + item.quantity + "\n";
+
+            message += "Price: " + formatPrice(item.subtotal) + "\n\n";
+
+        });
+
+        message += "Total: " + formatPrice(verifiedTotal) + "\n";
+
+        message += "Payment: Cash on Delivery\n\n";
+
+        message += "Please confirm my order. Thank you!";
+
+
+        // CLEAR CART AFTER SUCCESSFUL SAVE
+
+        localStorage.removeItem("ayanCart");
+
+
+        // SHOW SUCCESS MESSAGE
+
+        alert(
+            "Your order has been saved successfully!\n\n" +
+            "Order ID: " + orderRef.id +
+            "\n\nWhatsApp will open so you can send your order details."
+        );
+
+
+        // OPEN WHATSAPP
+
+        const whatsappNumber = "923219662393";
+
+        const whatsappURL =
+            "https://wa.me/" +
+            whatsappNumber +
+            "?text=" +
+            encodeURIComponent(message);
+
+        window.location.href = whatsappURL;
+
+
+    } catch (error) {
+
+        console.error("Order error:", error);
+
+        alert(
+            "Your order could not be saved. Please try again or contact us."
+        );
+
+        submitting = false;
+
+        placeOrderBtn.disabled = false;
+
+        placeOrderBtn.textContent = "PLACE ORDER";
+
+    }
+
+});
+
+
+// START
+
+loadProducts();
+
+</script>
+
+</body>
+</html>
