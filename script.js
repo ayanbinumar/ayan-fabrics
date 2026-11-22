@@ -538,3 +538,16 @@ document.addEventListener("keydown", function(event) {
 loadProducts();
 
 console.log("AYAN BIN UMAR Store Loaded Successfully!");
+
+// REGISTER SERVICE WORKER
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+            .then(() => {
+                console.log("AYAN BIN UMAR app is ready!");
+            })
+            .catch((error) => {
+                console.error("Service Worker Error:", error);
+            });
+    });
+}
