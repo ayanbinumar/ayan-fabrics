@@ -82,10 +82,28 @@
             cursor: pointer;
             margin-top: 10px;
             font-weight: bold;
+            width: 100%;
         }
 
         .collection-card button:hover {
             background: #e8d5a5;
+        }
+
+        .collection-card button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .card-actions .view-product {
+            background: transparent;
+            color: #e8d5a5;
+            border: 1px solid #c5a45e;
         }
 
         .message {
@@ -118,7 +136,6 @@
             }
 
             .collection-card button {
-                width: 100%;
                 padding: 10px 5px;
                 font-size: 11px;
             }
@@ -144,6 +161,7 @@
 
     </main>
 
+
     <script type="module">
 
         import {
@@ -155,6 +173,10 @@
             collection,
             getDocs
         } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        import {
+            showCartPopup
+        } from "./cart-popup.js";
 
 
         // FIREBASE CONFIGURATION
@@ -190,11 +212,67 @@
         }
 
 
+        // SHOPPING BAG
+
+        function getCart() {
+
+            try {
+                return JSON.parse(localStorage.getItem("ayanCart")) || {};
+            } catch (error) {
+                return {};
+            }
+
+        }
+
+
+        function saveCart(cart) {
+            localStorage.setItem("ayanCart", JSON.stringify(cart));
+        }
+
+
+        function addToBag(id, product, button) {
+
+            if (product.status !== "available") return;
+
+            const cart = getCart();
+
+            cart[id] = (Number(cart[id]) || 0) + 1;
+
+            saveCart(cart);
+
+            const totalItems = Object.values(cart).reduce(
+                (sum, quantity) => sum + Number(quantity || 0),
+                0
+            );
+
+            showCartPopup(
+                {
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.imageUrl
+                },
+                cart[id],
+                totalItems
+            );
+
+            button.textContent = "ADDED ✓";
+            button.disabled = true;
+
+            setTimeout(() => {
+                button.textContent = "ADD TO BAG +";
+                button.disabled = false;
+            }, 1000);
+
+        }
+
+
         // OPEN PRODUCT PAGE
 
         function openProduct(id) {
+
             window.location.href =
                 "product.html?id=" + encodeURIComponent(id);
+
         }
 
 
@@ -229,6 +307,13 @@
                     const imageUrl =
                         product.image || product.imageUrl || "";
 
+                    const productData = {
+                        name: product.name || "Premium Fabric",
+                        price: Number(product.price) || 0,
+                        imageUrl: imageUrl,
+                        status: product.status || "available"
+                    };
+
                     const card = document.createElement("article");
                     card.className = "collection-card";
 
@@ -240,7 +325,7 @@
                         const image = document.createElement("img");
 
                         image.src = imageUrl;
-                        image.alt = product.name || "Men's fabric";
+                        image.alt = productData.name;
                         image.loading = "lazy";
 
                         image.onerror = function() {
@@ -259,9 +344,7 @@
                     // PRODUCT NAME
 
                     const name = document.createElement("h3");
-
-                    name.textContent =
-                        product.name || "Premium Fabric";
+                    name.textContent = productData.name;
 
 
                     // PRODUCT DESCRIPTION
@@ -276,29 +359,46 @@
                     // PRODUCT PRICE
 
                     const price = document.createElement("p");
-
-                    price.textContent =
-                        formatPrice(product.price);
+                    price.textContent = formatPrice(productData.price);
 
 
-                    // VIEW PRODUCT BUTTON
+                    // BUTTONS
 
-                    const button = document.createElement("button");
+                    const actions = document.createElement("div");
+                    actions.className = "card-actions";
 
-                    button.textContent = "VIEW PRODUCT";
+                    const addButton = document.createElement("button");
 
-                    button.addEventListener("click", () => {
+                    addButton.textContent =
+                        productData.status === "available"
+                            ? "ADD TO BAG +"
+                            : "SOLD OUT";
+
+                    addButton.disabled =
+                        productData.status !== "available";
+
+                    addButton.addEventListener("click", () => {
+                        addToBag(docSnap.id, productData, addButton);
+                    });
+
+
+                    const viewButton = document.createElement("button");
+
+                    viewButton.className = "view-product";
+                    viewButton.textContent = "VIEW PRODUCT";
+
+                    viewButton.addEventListener("click", () => {
                         openProduct(docSnap.id);
                     });
 
 
-                    // ADD ELEMENTS
+                    actions.append(addButton, viewButton);
 
                     card.append(
                         name,
                         description,
                         price,
-                        button
+                        actions
                     );
 
                     productsContainer.appendChild(card);

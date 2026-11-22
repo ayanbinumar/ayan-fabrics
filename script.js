@@ -11,6 +11,11 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
+import {
+    showCartPopup
+} from "./cart-popup.js";
+
+
 // FIREBASE CONFIGURATION
 
 const firebaseConfig = {
@@ -23,10 +28,12 @@ const firebaseConfig = {
     measurementId: "G-5JQ417GF6E"
 };
 
+
 // CONNECT FIREBASE
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 
 // PRODUCTS AND CART
 
@@ -39,6 +46,7 @@ try {
 } catch (error) {
     cart = {};
 }
+
 
 // WEBSITE ELEMENTS
 
@@ -53,17 +61,20 @@ const checkoutBtn = document.getElementById("checkoutBtn");
 const menuToggle = document.getElementById("menuToggle");
 const navbar = document.getElementById("navbar");
 
+
 // FORMAT PRICE
 
 function formatPrice(price) {
     return "Rs. " + Number(price).toLocaleString("en-PK");
 }
 
+
 // SAVE CART
 
 function saveCart() {
     localStorage.setItem("ayanCart", JSON.stringify(cart));
 }
+
 
 // LOAD PRODUCTS FROM FIREBASE
 
@@ -109,6 +120,7 @@ async function loadProducts() {
     }
 
 }
+
 
 // DISPLAY PRODUCTS
 
@@ -214,6 +226,7 @@ function displayProducts() {
 
 }
 
+
 // IMAGE LIGHTBOX
 
 function openLightbox(imageUrl, imageName) {
@@ -270,6 +283,7 @@ function openLightbox(imageUrl, imageName) {
 
 }
 
+
 // PRODUCT CARD CLICK AND ADD TO BAG
 
 function handleProductClick(event) {
@@ -289,6 +303,13 @@ function handleProductClick(event) {
 
         saveCart();
         updateCart();
+
+        const totalItems = Object.values(cart).reduce(
+            (sum, quantity) => sum + Number(quantity || 0),
+            0
+        );
+
+        showCartPopup(product, cart[id], totalItems);
 
         button.textContent = "ADDED ✓";
 
@@ -314,8 +335,10 @@ function handleProductClick(event) {
 
 }
 
+
 mensProductsContainer.addEventListener("click", handleProductClick);
 womensProductsContainer.addEventListener("click", handleProductClick);
+
 
 // UPDATE CART
 
@@ -405,6 +428,7 @@ function updateCart() {
 
 }
 
+
 // CART BUTTON ACTIONS
 
 cartItems.addEventListener("click", function(event) {
@@ -438,15 +462,15 @@ cartItems.addEventListener("click", function(event) {
 
 });
 
-// OPEN SHOPPING BAG
+
+// OPEN SHOPPING BAG PAGE
 
 document.getElementById("cartButton").addEventListener("click", function() {
 
-    document.getElementById("cart").scrollIntoView({
-        behavior: "smooth"
-    });
+    window.location.href = "cart.html";
 
 });
+
 
 // WHATSAPP CHECKOUT
 
@@ -490,6 +514,7 @@ checkoutBtn.addEventListener("click", function() {
 
 });
 
+
 // MOBILE MENU
 
 menuToggle.addEventListener("click", function() {
@@ -505,6 +530,7 @@ menuToggle.addEventListener("click", function() {
     );
 
 });
+
 
 // CLOSE MENU
 
@@ -549,11 +575,13 @@ document.addEventListener("keydown", function(event) {
 
 });
 
+
 // START WEBSITE
 
 loadProducts();
 
 console.log("AYAN BIN UMAR Store Loaded Successfully!");
+
 
 // REGISTER SERVICE WORKER
 

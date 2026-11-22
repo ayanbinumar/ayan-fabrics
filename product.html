@@ -61,6 +61,18 @@
             cursor: not-allowed;
         }
 
+        .header-bag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            padding: 10px 16px;
+            border: 1px solid #c5a45e;
+            color: #e8d5a5;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
         .lightbox {
             display: none;
             position: fixed;
@@ -102,6 +114,14 @@
             .detail-info h1 {
                 font-size: 25px;
             }
+
+            .header {
+                gap: 10px;
+            }
+
+            .header-bag {
+                padding: 8px 10px;
+            }
         }
     </style>
 </head>
@@ -110,10 +130,17 @@
 
     <header class="header">
         <a href="index.html" class="logo">AYAN BIN UMAR</a>
+
+        <a href="cart.html" class="header-bag">
+            BAG <span id="detailCartCount">0</span>
+        </a>
+
         <a href="index.html" class="btn">BACK TO STORE</a>
     </header>
 
-    <a href="javascript:history.back()" class="back-link">← Back to Collection</a>
+    <a href="javascript:history.back()" class="back-link">
+        ← Back to Collection
+    </a>
 
     <main class="product-detail-page" id="productDetails">
         <p>Loading product details...</p>
@@ -125,13 +152,23 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+        import { initializeApp } from
+            "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 
         import {
             getFirestore,
             doc,
             getDoc
-        } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        } from
+            "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        import {
+            showCartPopup
+        } from "./cart-popup.js";
+
+
+        // FIREBASE CONFIGURATION
 
         const firebaseConfig = {
             apiKey: "AIzaSyDNF25tETO1V208NMwkMsVCQ4caksa_Goo",
@@ -143,6 +180,7 @@
             measurementId: "G-5JQ417GF6E"
         };
 
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -150,28 +188,72 @@
         const params = new URLSearchParams(window.location.search);
         const productId = params.get("id");
 
+
+        // FORMAT PRICE
+
         const formatPrice = price =>
             "Rs. " + Number(price || 0).toLocaleString("en-PK");
 
-        // EXISTING SHOPPING BAG
+
+        // SHOPPING BAG
+
         function getCart() {
+
             try {
                 return JSON.parse(localStorage.getItem("ayanCart")) || {};
             } catch (error) {
                 return {};
             }
+
         }
+
 
         function saveCart(cart) {
             localStorage.setItem("ayanCart", JSON.stringify(cart));
         }
 
-        function addToBag(id, button) {
+
+        function updateDetailCartCount() {
+
+            const cart = getCart();
+
+            const totalItems = Object.values(cart).reduce(
+                (sum, quantity) => sum + Number(quantity || 0),
+                0
+            );
+
+            document.getElementById("detailCartCount").textContent =
+                totalItems;
+
+        }
+
+
+        // ADD TO BAG
+
+        function addToBag(id, button, product) {
+
             const cart = getCart();
 
             cart[id] = (Number(cart[id]) || 0) + 1;
 
             saveCart(cart);
+
+            const totalItems = Object.values(cart).reduce(
+                (sum, quantity) => sum + Number(quantity || 0),
+                0
+            );
+
+            updateDetailCartCount();
+
+            showCartPopup(
+                {
+                    name: product.name || "Fabric",
+                    price: Number(product.price) || 0,
+                    imageUrl: product.imageUrl || ""
+                },
+                cart[id],
+                totalItems
+            );
 
             button.textContent = "ADDED ✓";
             button.disabled = true;
@@ -180,15 +262,21 @@
                 button.textContent = "ADD TO BAG +";
                 button.disabled = false;
             }, 1000);
+
         }
 
+
+        // LOAD PRODUCT
+
         async function loadProduct() {
+
             if (!productId) {
                 container.textContent = "Product not found.";
                 return;
             }
 
             try {
+
                 const productRef = doc(db, "products", productId);
                 const productSnap = await getDoc(productRef);
 
@@ -198,8 +286,13 @@
                 }
 
                 const product = productSnap.data();
-                const imageUrl = product.image || product.imageUrl || "";
-                const isAvailable = product.status === "available";
+
+                const imageUrl =
+                    product.image || product.imageUrl || "";
+
+                const isAvailable =
+                    product.status === "available";
+
 
                 container.innerHTML = `
                     <div class="detail-image">
@@ -230,6 +323,7 @@
                     </div>
                 `;
 
+
                 container.querySelector("h1").textContent =
                     product.name || "Fabric";
 
@@ -240,21 +334,39 @@
                     product.description || "Premium Quality Fabrics.";
 
                 container.querySelector(".product-status").textContent =
-                    isAvailable ? "Available" : "Currently unavailable";
+                    isAvailable
+                        ? "Available"
+                        : "Currently unavailable";
+
 
                 const addButton =
                     document.getElementById("addToBagButton");
 
+
                 if (isAvailable) {
+
                     addButton.addEventListener("click", () => {
-                        addToBag(productId, addButton);
+
+                        addToBag(
+                            productId,
+                            addButton,
+                            {
+                                name: product.name || "Fabric",
+                                price: Number(product.price) || 0,
+                                imageUrl: imageUrl
+                            }
+                        );
+
                     });
+
                 }
+
 
                 const mainImage =
                     document.getElementById("mainProductImage");
 
                 if (mainImage) {
+
                     mainImage.src = imageUrl;
 
                     mainImage.onerror = () => {
@@ -262,38 +374,62 @@
                     };
 
                     mainImage.addEventListener("click", () => {
+
                         document.getElementById("lightboxImage").src =
                             imageUrl;
 
                         document.getElementById("lightbox")
                             .classList.add("active");
+
                     });
+
                 }
+
 
                 document.title =
                     (product.name || "Product") + " | AYAN BIN UMAR";
 
+
+                updateDetailCartCount();
+
             } catch (error) {
+
                 console.error(error);
+
                 container.textContent =
                     "Could not load product. Please try again.";
+
             }
+
         }
+
+
+        // LIGHTBOX
 
         document.getElementById("closeLightbox")
             .addEventListener("click", () => {
+
                 document.getElementById("lightbox")
                     .classList.remove("active");
+
             });
+
 
         document.getElementById("lightbox")
             .addEventListener("click", event => {
+
                 if (event.target.id === "lightbox") {
                     event.currentTarget.classList.remove("active");
                 }
+
             });
 
+
+        // START
+
+        updateDetailCartCount();
         loadProduct();
+
     </script>
 
 </body>

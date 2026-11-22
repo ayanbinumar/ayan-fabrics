@@ -88,6 +88,12 @@
             background: #e8d5a5;
         }
 
+        .collection-card .sold-out {
+            background: #777;
+            color: white;
+            cursor: not-allowed;
+        }
+
         .message {
             margin: 35px 0;
             color: #e8d5a5;
@@ -156,6 +162,10 @@
             getDocs
         } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
+        import {
+            showCartPopup
+        } from "./cart-popup.js";
+
 
         // FIREBASE CONFIGURATION
 
@@ -182,6 +192,26 @@
             document.getElementById("collectionProducts");
 
 
+        // CART FUNCTIONS
+
+        function getCart() {
+            try {
+                return JSON.parse(
+                    localStorage.getItem("ayanCart")
+                ) || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(
+                "ayanCart",
+                JSON.stringify(cart)
+            );
+        }
+
+
         // FORMAT PRICE
 
         function formatPrice(price) {
@@ -195,6 +225,37 @@
         function openProduct(id) {
             window.location.href =
                 "product.html?id=" + encodeURIComponent(id);
+        }
+
+
+        // ADD TO BAG
+
+        function addToBag(id, product, button) {
+
+            const cart = getCart();
+
+            cart[id] = Number(cart[id] || 0) + 1;
+
+            saveCart(cart);
+
+            const totalItems = Object.values(cart).reduce(
+                (sum, quantity) => {
+                    return sum + Number(quantity || 0);
+                },
+                0
+            );
+
+            showCartPopup(
+                {
+                    name: product.name || "Premium Fabric",
+                    price: Number(product.price) || 0,
+                    imageUrl: product.image || product.imageUrl || ""
+                },
+                cart[id],
+                totalItems
+            );
+
+            button.textContent = "ADDED TO BAG";
         }
 
 
@@ -281,13 +342,42 @@
                         formatPrice(product.price);
 
 
+                    // ADD TO BAG BUTTON
+
+                    const addButton = document.createElement("button");
+
+                    const status = String(
+                        product.status || "available"
+                    ).toLowerCase().trim();
+
+                    if (status === "available") {
+
+                        addButton.textContent = "ADD TO BAG";
+
+                        addButton.addEventListener("click", () => {
+                            addToBag(
+                                docSnap.id,
+                                product,
+                                addButton
+                            );
+                        });
+
+                    } else {
+
+                        addButton.textContent = "SOLD OUT";
+                        addButton.classList.add("sold-out");
+                        addButton.disabled = true;
+
+                    }
+
+
                     // VIEW PRODUCT BUTTON
 
-                    const button = document.createElement("button");
+                    const viewButton = document.createElement("button");
 
-                    button.textContent = "VIEW PRODUCT";
+                    viewButton.textContent = "VIEW PRODUCT";
 
-                    button.addEventListener("click", () => {
+                    viewButton.addEventListener("click", () => {
                         openProduct(docSnap.id);
                     });
 
@@ -298,7 +388,8 @@
                         name,
                         description,
                         price,
-                        button
+                        addButton,
+                        viewButton
                     );
 
                     productsContainer.appendChild(card);
