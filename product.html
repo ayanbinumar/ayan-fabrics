@@ -49,6 +49,18 @@
             text-decoration: none;
         }
 
+        .add-to-bag-detail {
+            display: inline-block;
+            margin: 15px 10px 15px 0;
+            cursor: pointer;
+            border: none;
+        }
+
+        .add-to-bag-detail:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .lightbox {
             display: none;
             position: fixed;
@@ -101,7 +113,7 @@
         <a href="index.html" class="btn">BACK TO STORE</a>
     </header>
 
-    <a href="index.html" class="back-link">← Back to Collection</a>
+    <a href="javascript:history.back()" class="back-link">← Back to Collection</a>
 
     <main class="product-detail-page" id="productDetails">
         <p>Loading product details...</p>
@@ -141,6 +153,35 @@
         const formatPrice = price =>
             "Rs. " + Number(price || 0).toLocaleString("en-PK");
 
+        // EXISTING SHOPPING BAG
+        function getCart() {
+            try {
+                return JSON.parse(localStorage.getItem("ayanCart")) || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem("ayanCart", JSON.stringify(cart));
+        }
+
+        function addToBag(id, button) {
+            const cart = getCart();
+
+            cart[id] = (Number(cart[id]) || 0) + 1;
+
+            saveCart(cart);
+
+            button.textContent = "ADDED ✓";
+            button.disabled = true;
+
+            setTimeout(() => {
+                button.textContent = "ADD TO BAG +";
+                button.disabled = false;
+            }, 1000);
+        }
+
         async function loadProduct() {
             if (!productId) {
                 container.textContent = "Product not found.";
@@ -158,12 +199,15 @@
 
                 const product = productSnap.data();
                 const imageUrl = product.image || product.imageUrl || "";
+                const isAvailable = product.status === "available";
 
                 container.innerHTML = `
                     <div class="detail-image">
-                        ${imageUrl
-                            ? `<img id="mainProductImage" src="${imageUrl}" alt="Product image">`
-                            : `<p>Image not available</p>`}
+                        ${
+                            imageUrl
+                                ? `<img id="mainProductImage" alt="Product image">`
+                                : `<p>Image not available</p>`
+                        }
                     </div>
 
                     <div class="detail-info">
@@ -171,7 +215,18 @@
                         <p class="detail-price"></p>
                         <p class="detail-description"></p>
                         <p class="product-status"></p>
-                        <a href="index.html#collection" class="btn">CONTINUE SHOPPING</a>
+
+                        <button
+                            class="btn add-to-bag-detail"
+                            id="addToBagButton"
+                            ${isAvailable ? "" : "disabled"}
+                        >
+                            ${isAvailable ? "ADD TO BAG +" : "CURRENTLY UNAVAILABLE"}
+                        </button>
+
+                        <a href="index.html#collection" class="btn">
+                            CONTINUE SHOPPING
+                        </a>
                     </div>
                 `;
 
@@ -185,18 +240,33 @@
                     product.description || "Premium Quality Fabrics.";
 
                 container.querySelector(".product-status").textContent =
-                    product.status === "available" ? "Available" : "Currently unavailable";
+                    isAvailable ? "Available" : "Currently unavailable";
 
-                const mainImage = document.getElementById("mainProductImage");
+                const addButton =
+                    document.getElementById("addToBagButton");
+
+                if (isAvailable) {
+                    addButton.addEventListener("click", () => {
+                        addToBag(productId, addButton);
+                    });
+                }
+
+                const mainImage =
+                    document.getElementById("mainProductImage");
 
                 if (mainImage) {
+                    mainImage.src = imageUrl;
+
                     mainImage.onerror = () => {
                         mainImage.alt = "Image could not be loaded";
                     };
 
                     mainImage.addEventListener("click", () => {
-                        document.getElementById("lightboxImage").src = imageUrl;
-                        document.getElementById("lightbox").classList.add("active");
+                        document.getElementById("lightboxImage").src =
+                            imageUrl;
+
+                        document.getElementById("lightbox")
+                            .classList.add("active");
                     });
                 }
 
@@ -205,19 +275,23 @@
 
             } catch (error) {
                 console.error(error);
-                container.textContent = "Could not load product. Please try again.";
+                container.textContent =
+                    "Could not load product. Please try again.";
             }
         }
 
-        document.getElementById("closeLightbox").addEventListener("click", () => {
-            document.getElementById("lightbox").classList.remove("active");
-        });
+        document.getElementById("closeLightbox")
+            .addEventListener("click", () => {
+                document.getElementById("lightbox")
+                    .classList.remove("active");
+            });
 
-        document.getElementById("lightbox").addEventListener("click", event => {
-            if (event.target.id === "lightbox") {
-                event.currentTarget.classList.remove("active");
-            }
-        });
+        document.getElementById("lightbox")
+            .addEventListener("click", event => {
+                if (event.target.id === "lightbox") {
+                    event.currentTarget.classList.remove("active");
+                }
+            });
 
         loadProduct();
     </script>
